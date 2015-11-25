@@ -11,6 +11,19 @@ class GameManager :
         Initialize the game manager.
         :return: None
         '''
+
+        self.P1UP = pygame.K_UP
+        self.P1DOWN = pygame.K_DOWN
+        self.P1LEFT = pygame.K_LEFT
+        self.P1RIGHT = pygame.K_RIGHT
+
+        self.P2UP = pygame.K_w
+        self.P2DOWN = pygame.K_s
+        self.P2LEFT = pygame.K_a
+        self.P2RIGHT = pygame.K_d
+
+
+
         self.sprites = self.getImages(pygame)
 
         self.player1 = Sprite(self.sprites[0])
@@ -29,11 +42,33 @@ class GameManager :
         '''
         self.player1.draw(screen, pygame)
 
+    def doKeyDown(self, key) :
+        '''
+        Manage a key pressed.
+        :param key: pygame.key event.
+        :return: None
+        '''
+        if key == self.P1UP :
+            print key
+        elif key == self.P1DOWN :
+            print key
+        elif key == self.P1LEFT :
+            self.player1.goDirection('L')
+        elif key == self.P1RIGHT :
+            self.player1.goDirection('R')
+
     def getImages(self, pygame) :
+        '''
+        Rerieve all of the image files.
+        :param pygame: pygame
+        :return: None
+        '''
 
         playerAnim = []
         for i in range(1, 7) :
-            playerAnim.append(pygame.image.load(os.path.join("data", "Walk_Right" + str(i) + ".png")).convert_alpha())
+            playerAnim.append(pygame.image.load(os.path.join("data", "RightWalk", "Walk_Right" + str(i) + ".png")).convert_alpha())
+        for i in range(1,7) :
+            playerAnim.append(pygame.image.load(os.path.join("data", "LeftWalk", "Walk_Left" + str(i) + ".png")).convert_alpha())
 
         return [playerAnim]
 
@@ -46,7 +81,14 @@ class Sprite :
         '''
         self.animContent = anim
 
+        self.direction = 'L'
         self.stage = 0
+        '''
+        Stage 0: Fall
+        Stage 1: Stand Stationary
+        Stage 2: Start running
+        Stage 3 - 7: Running animation
+        '''
         self.frameDelay = 5
         self.frameCount = 0
 
@@ -68,6 +110,15 @@ class Sprite :
         :return: None
         '''
         screen.blit(self.animContent[self.stage], (0,0))
+
+    def goDirection(self, direction) :
+        '''
+        Move in the direction specified.
+        :param direction: (Char) Direction.
+        :return: None
+        '''
+        self.direction = direction
+
 
 
 class Physics :

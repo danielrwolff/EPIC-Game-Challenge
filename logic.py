@@ -61,6 +61,7 @@ class Logic :
         :param key: event.key
         :return: None
         '''
+        self.gameManager.doKeyDown(key)
 
     def doKeyUp(self, key) :
         '''
@@ -103,7 +104,7 @@ class Screen :
         Clear the pygame screen and all surfaces.
         :return: None
         '''
-        self.screen.fill((0, 0, 0))
+        self.screen.fill((230, 230, 230))
 
     def flip(self) :
         '''
@@ -239,14 +240,6 @@ class AudioManager :
             v -= self.fadeRate
 
 
-
-class DataManager :
-
-    def __init__(self) :
-        '''
-        Initialize the data manager and load all the data.
-        :return: None
-        '''
 
 
 
