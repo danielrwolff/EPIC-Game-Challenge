@@ -20,7 +20,7 @@ class Logic :
         self.window = Screen(_SIZE, _CAPTION)
         self.events = EventHandler()
 
-        self.gameManager = GameManager(pygame)
+        self.gameManager = GameManager(pygame, _SIZE)
         self.audioManager = AudioManager()
 
 

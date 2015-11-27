@@ -6,9 +6,11 @@ import math, os
 
 class GameManager :
 
-    def __init__(self, pygame) :
+    def __init__(self, pygame, SIZE) :
         '''
         Initialize the game manager.
+        :param pygame: PyGame instance.
+        :param SIZE: Size of screen.
         :return: None
         '''
 
@@ -22,10 +24,14 @@ class GameManager :
         self.P2LEFT = pygame.K_a
         self.P2RIGHT = pygame.K_d
 
+        self.WIDTH = SIZE[0]
+        self.HEIGHT = SIZE[1]
+
         self.sprites = self.getImages(pygame)
 
         self.physics = Physics()
 
+        self.ground = GameObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180))
         self.player1 = Sprite(self.sprites, 100, 100)
 
     def update(self) :
@@ -41,6 +47,7 @@ class GameManager :
         :return: None
         '''
         self.player1.draw(screen, pygame)
+        self.ground.draw(screen, pygame)
 
     def doKeyDown(self, key) :
         '''
@@ -90,11 +97,16 @@ class GameManager :
 
         return [leftAnim, rightAnim]
 
+
+
 class Sprite :
 
     def __init__(self, anim, xPos, yPos) :
         '''
         Initialize the sprite.
+        :param anim: Animation images.
+        :param xPos: X position.
+        :param yPos: Y position.
         :return: None
         '''
         self.animContent = anim
@@ -196,6 +208,35 @@ class Sprite :
         :return: None
         '''
         self.move = False
+
+
+
+class GameObject :
+
+    def __init__(self, xPos, yPos, width, height, col1, col2) :
+        '''
+        Initialize the game object.
+        :param xPos: X position.
+        :param yPos: Y position.
+        :param width: Width of object.
+        :param height: Height of object.
+        :param col1: Fill colour.
+        :param col2: Outline colour.
+        :return: None
+        '''
+
+        self.xPos = xPos
+        self.yPos = yPos
+        self.width = width
+        self.height = height
+        self.fill = col1
+        self.outline = col2
+
+    def draw(self, screen, pygame) :
+        pygame.draw.rect(screen, self.fill, (self.xPos, self.yPos, self.width, self.height))
+        pygame.draw.rect(screen, self.outline, (self.xPos, self.yPos, self.width, self.height), 1)
+
+
 
 class Physics :
 
