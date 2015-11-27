@@ -31,7 +31,6 @@ class GameManager :
 
         self.physics = Physics()
 
-        #self.ground = GameObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180))
         self.ground = GameObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180))
         self.player1 = Sprite(self.sprites, 100, 100)
 
