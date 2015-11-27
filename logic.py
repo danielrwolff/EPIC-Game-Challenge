@@ -69,6 +69,7 @@ class Logic :
         :param key: event.key
         :return: None
         '''
+        self.gameManager.doKeyUp(key)
 
     def doMouseDown(self, mouse) :
         '''

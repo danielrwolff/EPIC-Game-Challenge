@@ -22,18 +22,18 @@ class GameManager :
         self.P2LEFT = pygame.K_a
         self.P2RIGHT = pygame.K_d
 
-
-
         self.sprites = self.getImages(pygame)
 
-        self.player1 = Sprite(self.sprites[0])
+        self.physics = Physics()
+
+        self.player1 = Sprite(self.sprites, 100, 100)
 
     def update(self) :
         '''
         Update the game manager.
         :return: None
         '''
-        self.player1.update()
+        self.player1.update(self.physics)
 
     def draw(self, screen, pygame) :
         '''
@@ -49,13 +49,24 @@ class GameManager :
         :return: None
         '''
         if key == self.P1UP :
-            print key
+            self.player1.jump()
         elif key == self.P1DOWN :
             print key
         elif key == self.P1LEFT :
             self.player1.goDirection('L')
         elif key == self.P1RIGHT :
             self.player1.goDirection('R')
+
+    def doKeyUp(self, key) :
+
+        if key == self.P1UP :
+            print key
+        elif key == self.P1DOWN :
+            print key
+        elif key == self.P1LEFT :
+            self.player1.stop()
+        elif key == self.P1RIGHT :
+            self.player1.stop()
 
     def getImages(self, pygame) :
         '''
@@ -64,17 +75,24 @@ class GameManager :
         :return: None
         '''
 
-        playerAnim = []
-        for i in range(1, 7) :
-            playerAnim.append(pygame.image.load(os.path.join("data", "RightWalk", "Walk_Right" + str(i) + ".png")).convert_alpha())
-        for i in range(1,7) :
-            playerAnim.append(pygame.image.load(os.path.join("data", "LeftWalk", "Walk_Left" + str(i) + ".png")).convert_alpha())
+        leftAnim = []
+        rightAnim = []
 
-        return [playerAnim]
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Stationary_Right.png")).convert_alpha())
+        for i in range(1, 7) :
+            rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Walk_Right" + str(i) + ".png")).convert_alpha())
+
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Stationary_Left.png")).convert_alpha())
+        for i in range(1, 7) :
+            leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Walk_Left" + str(i) + ".png")).convert_alpha())
+
+        return [leftAnim, rightAnim]
 
 class Sprite :
 
-    def __init__(self, anim) :
+    def __init__(self, anim, xPos, yPos) :
         '''
         Initialize the sprite.
         :return: None
@@ -82,34 +100,78 @@ class Sprite :
         self.animContent = anim
 
         self.direction = 'L'
-        self.stage = 0
+        self.move = False
+        self.grounded = True
+        self.stage = 1
         '''
         Stage 0: Fall
         Stage 1: Stand Stationary
-        Stage 2: Start running
-        Stage 3 - 7: Running animation
+        Stage 2 - 3: Start running
+        Stage 4 - 7: Running animation
         '''
-        self.frameDelay = 5
+        self.frameDelay = 3
         self.frameCount = 0
 
-    def update(self) :
+        self.groundSpeed = 5
+        self.fallSpeedX = 3
+        self.jumpSpeed = -10
+        self.xPos = xPos
+        self.yPos = yPos
+        self.vel = Vector(0, 0)
+
+    def update(self, physics) :
         '''
         Update the sprite.
         :return: None
         '''
         self.frameCount += 1
+
+        if self.move :
+            if self.grounded :
+                if self.direction == 'L' :
+                    self.vel.setMagX(self.groundSpeed*-1)
+                else :
+                    self.vel.setMagX(self.groundSpeed)
+            else :
+                if self.direction == 'L' :
+                    self.vel.setMagX(self.fallSpeedX*-1)
+                else :
+                    self.vel.setMagX(self.fallSpeedX)
+        else :
+            self.vel.setMagX(0)
+
+        self.vel = physics.applyGravity(self.vel)
+
+        if self.stage >= 3 or self.stage == 0 :
+            self.xPos += self.vel.getMagX()
+
+        self.yPos += self.vel.getMagY()
+
+        # When the frame count is greater than or equal to the frame delay, update the stage.
         if self.frameCount >= self.frameDelay :
-            self.stage += 1
-            if self.stage >= 6 :
-                self.stage = 2
             self.frameCount = 0
+
+            if self.grounded :
+                # ...
+                if self.move :
+                    if self.stage >= 7 :
+                        self.stage = 4
+                    else :
+                        self.stage += 1
+                else :
+                    self.stage = 1
+            else :
+                self.stage = 0
 
     def draw(self, screen, pygame) :
         '''
         Draw the sprite.
         :return: None
         '''
-        screen.blit(self.animContent[self.stage], (0,0))
+        if self.direction == 'L' :
+            screen.blit(self.animContent[0][self.stage], (self.xPos, self.yPos))
+        else :
+            screen.blit(self.animContent[1][self.stage], (self.xPos, self.yPos))
 
     def goDirection(self, direction) :
         '''
@@ -118,8 +180,22 @@ class Sprite :
         :return: None
         '''
         self.direction = direction
+        self.move = True
 
+    def jump(self) :
+        '''
+        Make the player jump.
+        :return: None
+        '''
+        self.grounded = False
+        self.vel.setMagY(self.jumpSpeed)
 
+    def stop(self) :
+        '''
+        Stops the player from running.
+        :return: None
+        '''
+        self.move = False
 
 class Physics :
 
@@ -160,8 +236,8 @@ class Vector :
         :param other: Other vector.
         :return: None
         '''
-        self.magX += other.magX
-        self.magY += other.mag
+        self.magX += other.getMagX()
+        self.magY += other.getMagY()
 
     def getOpposite(self) :
         '''
@@ -204,3 +280,19 @@ class Vector :
         :return: Float -> angle (degrees).
         '''
         return math.degrees(self.angle)
+
+    def setMagX(self, x) :
+        '''
+        Set the x-component of the magnitude.
+        :param x: x-component
+        :return: None
+        '''
+        self.magX = x
+
+    def setMagY(self, y) :
+        '''
+        Set the y-component of the magnitude.
+        :param y: y-component
+        :return: None
+        '''
+        self.magY = y
