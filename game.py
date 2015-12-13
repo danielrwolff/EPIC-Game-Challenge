@@ -2,7 +2,8 @@
 # Daniel Wolff
 # 11/11/2015
 
-import math, os
+import math
+from tools import *
 
 class GameManager :
 
@@ -32,7 +33,8 @@ class GameManager :
         self.physics = Physics()
 
         self.ground = GameObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180))
-        self.player1 = Sprite(self.sprites, 100, 100)
+        self.player1 = Sprite(self.sprites, 100, 100, 50*0.75, 100*0.75)
+        self.player2 = Sprite(self.sprites, 100, 200, 50, 100)
 
     def update(self) :
         '''
@@ -40,6 +42,7 @@ class GameManager :
         :return: None
         '''
         self.player1.update(self.physics)
+        self.player2.update(self.physics)
 
     def draw(self, screen, pygame) :
         '''
@@ -47,6 +50,7 @@ class GameManager :
         :return: None
         '''
         self.player1.draw(screen, pygame)
+        self.player2.draw(screen, pygame)
         self.ground.draw(screen, pygame)
 
     def doKeyDown(self, key) :
@@ -64,6 +68,15 @@ class GameManager :
         elif key == self.P1RIGHT :
             self.player1.goDirection('R')
 
+        if key == self.P2UP :
+            self.player2.jump()
+        elif key == self.P2DOWN :
+            print key
+        elif key == self.P2LEFT :
+            self.player2.goDirection('L')
+        elif key == self.P2RIGHT :
+            self.player2.goDirection('R')
+
     def doKeyUp(self, key) :
 
         if key == self.P1UP :
@@ -74,6 +87,15 @@ class GameManager :
             self.player1.stop()
         elif key == self.P1RIGHT :
             self.player1.stop()
+
+        if key == self.P2UP :
+            print key
+        elif key == self.P2DOWN :
+            print key
+        elif key == self.P2LEFT :
+            self.player2.stop()
+        elif key == self.P2RIGHT :
+            self.player2.stop()
 
     def getImages(self, pygame) :
         '''
@@ -101,7 +123,7 @@ class GameManager :
 
 class Sprite :
 
-    def __init__(self, anim, xPos, yPos) :
+    def __init__(self, anim, xPos, yPos, width, height) :
         '''
         Initialize the sprite.
         :param anim: Animation images.
@@ -123,6 +145,8 @@ class Sprite :
         '''
         self.frameDelay = 3
         self.frameCount = 0
+        self.width = width
+        self.height = height
 
         self.groundSpeed = 5
         self.fallSpeedX = 3
@@ -134,6 +158,7 @@ class Sprite :
     def update(self, physics) :
         '''
         Update the sprite.
+        :param physics: Physics instance.
         :return: None
         '''
         self.frameCount += 1
@@ -178,12 +203,14 @@ class Sprite :
     def draw(self, screen, pygame) :
         '''
         Draw the sprite.
+        :param screen: Surface to draw to.
+        :param pygame: Pygame instance.
         :return: None
         '''
         if self.direction == 'L' :
-            screen.blit(self.animContent[0][self.stage], (self.xPos, self.yPos))
+            screen.blit(pygame.transform.smoothscale(self.animContent[0][self.stage], (int(self.width), int(self.height))), (self.xPos, self.yPos))
         else :
-            screen.blit(self.animContent[1][self.stage], (self.xPos, self.yPos))
+            screen.blit(pygame.transform.smoothscale(self.animContent[1][self.stage], (int(self.width), int(self.height))), (self.xPos, self.yPos))
 
     def goDirection(self, direction) :
         '''
@@ -238,102 +265,3 @@ class GameObject :
 
 
 
-class Physics :
-
-    def __init__(self) :
-        '''
-        Initialize the physics instance.
-        :return: None
-        '''
-        self.gravity = Vector(0.98, 90)
-
-    def applyGravity(self, v) :
-        '''
-        Apply the gravity vector to a velocity vector.
-        :param v: Velocity vector.
-        :return: Resultant velocity vector.
-        '''
-        v + self.gravity
-        return v
-
-
-
-class Vector :
-
-    def __init__(self, mag, ang) :
-        '''
-        Initialize the vector object.
-        :param mag: Magnitude of vector.
-        :param ang: Angle of vector.
-        :return: None
-        '''
-        self.angle = math.radians(ang)
-        self.magX = float(mag)*math.cos(self.angle)
-        self.magY = float(mag)*math.sin(self.angle)
-
-    def __add__(self, other) :
-        '''
-        Adds other vector to the initial vector.
-        :param other: Other vector.
-        :return: None
-        '''
-        self.magX += other.getMagX()
-        self.magY += other.getMagY()
-
-    def getOpposite(self) :
-        '''
-        Create a vector opposite in direction but equal in magnitude.
-        :return: Vector -> opposite vector.
-        '''
-        return Vector(self.getMag(), self.getAngD() + 180)
-
-    def getMag(self) :
-        '''
-        Get the total magnitude of the vector.
-        :return: Float -> magnitude.
-        '''
-        return math.hypot(self.magX, self.magY)
-
-    def getMagX(self) :
-        '''
-        Get the x-component of the magnitude.
-        :return: Float -> magnitude of x-component.
-        '''
-        return self.magX
-
-    def getMagY(self) :
-        '''
-        Get the y-component of the magnitude.
-        :return: Float -> magnitude of y-component.
-        '''
-        return self.magY
-
-    def getAngR(self) :
-        '''
-        Get the vector angle in radians.
-        :return: Float -> angle (radians).
-        '''
-        return self.angle
-
-    def getAngD(self) :
-        '''
-        Get the vector angle in degrees.
-        :return: Float -> angle (degrees).
-        '''
-        return math.degrees(self.angle)
-
-    def setMagX(self, x) :
-        '''
-        Set the x-component of the magnitude.
-        :param x: x-component
-        :return: None
-        '''
-        self.magX = x
-
-    def setMagY(self, y) :
-        '''
-        Set the y-component of the magnitude.
-        :param y: y-component
-        :return: None
-        '''
-        self.magY = y
