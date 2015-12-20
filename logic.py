@@ -23,7 +23,7 @@ class Logic :
         self.gameManager = GameManager(pygame, _SIZE)
         self.audioManager = AudioManager()
 
-        self.audioManager.playRandomSong()
+        #self.audioManager.playRandomSong()
 
         self.mouse = (0, 0)
 

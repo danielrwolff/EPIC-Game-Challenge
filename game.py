@@ -2,7 +2,7 @@
 # Daniel Wolff
 # 11/11/2015
 
-import math
+import os
 from tools import *
 
 class GameManager :
@@ -31,10 +31,11 @@ class GameManager :
         self.sprites = self.getImages(pygame)
 
         self.physics = Physics()
+        self.camera = Camera(0, 0, 1, self.WIDTH, self.HEIGHT, 100)
 
         self.ground = GameObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180))
-        self.player1 = Sprite(self.sprites, 100, 100, 50*0.75, 100*0.75)
-        self.player2 = Sprite(self.sprites, 100, 200, 50, 100)
+        self.player1 = Sprite(self.sprites, 100, 100, 50*0.75, 100*0.75, (0, 0, 0))
+        self.player2 = Sprite(self.sprites, 100, 200, 50, 100, (0, 0, 0))
 
     def update(self) :
         '''
@@ -49,9 +50,9 @@ class GameManager :
         Draw the objects within the game manager.
         :return: None
         '''
-        self.player1.draw(screen, pygame)
-        self.player2.draw(screen, pygame)
-        self.ground.draw(screen, pygame)
+        self.player1.draw(screen, pygame, self.camera)
+        self.player2.draw(screen, pygame, self.camera)
+        self.ground.draw(screen, pygame, self.camera)
 
     def doKeyDown(self, key) :
         '''
@@ -121,9 +122,36 @@ class GameManager :
 
 
 
-class Sprite :
+class GameObject :
 
-    def __init__(self, anim, xPos, yPos, width, height) :
+    def __init__(self, xPos, yPos, width, height, col1, col2) :
+        '''
+        Initialize the game object.
+        :param xPos: X position.
+        :param yPos: Y position.
+        :param width: Width of object.
+        :param height: Height of object.
+        :param col1: Fill colour.
+        :param col2: Outline colour.
+        :return: None
+        '''
+
+        self.xPos = xPos
+        self.yPos = yPos
+        self.width = width
+        self.height = height
+        self.fill = col1
+        self.outline = col2
+
+    def draw(self, screen, pygame, camera) :
+        pygame.draw.rect(screen, self.fill, (self.xPos, self.yPos, self.width, self.height))
+        pygame.draw.rect(screen, self.outline, (self.xPos, self.yPos, self.width, self.height), 1)
+
+
+
+class Sprite (GameObject) :
+
+    def __init__(self, anim, xPos, yPos, width, height, col) :
         '''
         Initialize the sprite.
         :param anim: Animation images.
@@ -131,6 +159,9 @@ class Sprite :
         :param yPos: Y position.
         :return: None
         '''
+
+        GameObject.__init__(self, xPos, yPos, width, height, (255, 255, 255), col)
+
         self.animContent = anim
 
         self.direction = 'L'
@@ -145,14 +176,11 @@ class Sprite :
         '''
         self.frameDelay = 3
         self.frameCount = 0
-        self.width = width
-        self.height = height
 
         self.groundSpeed = 5
         self.fallSpeedX = 3
         self.jumpSpeed = -10
-        self.xPos = xPos
-        self.yPos = yPos
+
         self.vel = Vector(0, 0)
 
     def update(self, physics) :
@@ -200,7 +228,7 @@ class Sprite :
             else :
                 self.stage = 0
 
-    def draw(self, screen, pygame) :
+    def draw(self, screen, pygame, camera) :
         '''
         Draw the sprite.
         :param screen: Surface to draw to.
@@ -208,9 +236,13 @@ class Sprite :
         :return: None
         '''
         if self.direction == 'L' :
-            screen.blit(pygame.transform.smoothscale(self.animContent[0][self.stage], (int(self.width), int(self.height))), (self.xPos, self.yPos))
+            screen.blit(pygame.transform.smoothscale(self.animContent[0][self.stage],
+                                                        camera.zoomToGameScreen(int(self.width), int(self.height))),
+                                                        camera.transToGameScreen(self.xPos, self.yPos))
         else :
-            screen.blit(pygame.transform.smoothscale(self.animContent[1][self.stage], (int(self.width), int(self.height))), (self.xPos, self.yPos))
+            screen.blit(pygame.transform.smoothscale(self.animContent[1][self.stage],
+                                                        camera.zoomToGameScreen(int(self.width), int(self.height))),
+                                                        camera.transToGameScreen(self.xPos, self.yPos))
 
     def goDirection(self, direction) :
         '''
@@ -238,30 +270,7 @@ class Sprite :
 
 
 
-class GameObject :
 
-    def __init__(self, xPos, yPos, width, height, col1, col2) :
-        '''
-        Initialize the game object.
-        :param xPos: X position.
-        :param yPos: Y position.
-        :param width: Width of object.
-        :param height: Height of object.
-        :param col1: Fill colour.
-        :param col2: Outline colour.
-        :return: None
-        '''
-
-        self.xPos = xPos
-        self.yPos = yPos
-        self.width = width
-        self.height = height
-        self.fill = col1
-        self.outline = col2
-
-    def draw(self, screen, pygame) :
-        pygame.draw.rect(screen, self.fill, (self.xPos, self.yPos, self.width, self.height))
-        pygame.draw.rect(screen, self.outline, (self.xPos, self.yPos, self.width, self.height), 1)
 
 
 
