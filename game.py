@@ -31,7 +31,7 @@ class GameManager :
         self.sprites = self.getImages(pygame)
 
         self.physics = Physics()
-        self.camera = Camera(0, 0, 1, self.WIDTH, self.HEIGHT, 100, 3, 0.1)
+        self.camera = Camera(0, 0, 1, self.WIDTH, self.HEIGHT, 200, 3, 0.1)
 
         self.ground = GameObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180))
         self.player1 = Sprite(self.sprites, 100, 200, 50, 100, (0, 0, 0))

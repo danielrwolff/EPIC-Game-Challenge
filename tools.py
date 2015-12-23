@@ -45,12 +45,17 @@ class Camera :
         :param p2: Player 2.
         :return: None
         '''
-        self.xPos = self.WIDTH/2.0 - (p1.getXPos() + p2.getXPos())/2.0
-        self.yPos = self.HEIGHT/2.0 - (p1.getYPos() + p2.getYPos())/2.0
 
-        print "Camera Pos: ", self.xPos, self.yPos
+        dx = abs(p1.getXPos() - p2.getXPos())
+        dy = abs(p1.getYPos() - p2.getYPos())
 
+        if dx >= dy :
+            self.zoom = self.WIDTH/(dx + self.buffer)
+        else:
+            self.zoom = self.HEIGHT/(dy + self.buffer)
 
+        self.xPos = (p1.getXPos() + p2.getXPos())/2.0
+        self.yPos = (p1.getYPos() + p2.getYPos())/2.0
 
     def transToGameScreen(self, x, y) :
         '''
@@ -59,7 +64,8 @@ class Camera :
         :param y: y position to translate.
         :return: Tuple - (x,y)
         '''
-        return (x + self.xPos)*self.zoom, (y + self.yPos)*self.zoom
+        #return (x + self.xPos)*self.zoom, (y + self.yPos)*self.zoom
+        return (x - self.xPos)*self.zoom + self.WIDTH/2.0, (y-self.yPos)*self.zoom + self.HEIGHT/2.0
 
     def zoomToGameScreen(self, w, h) :
         '''
