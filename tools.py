@@ -7,7 +7,7 @@ import math
 
 class Camera :
 
-    def __init__(self, xPos, yPos, zoom, width, height, buff) :
+    def __init__(self, xPos, yPos, zoom, width, height, buff, maxZoom, minZoom) :
         '''
         Initialize the camera object.
         :param xPos: x position of camera.
@@ -26,6 +26,8 @@ class Camera :
         self.yPos = yPos
         self.zoom = zoom
         self.buffer = buff
+        self.maxZoom = maxZoom
+        self.minZoom = minZoom
 
     def getZoom(self) :
         return self.zoom
@@ -35,6 +37,20 @@ class Camera :
 
     def getYPos(self) :
         return self.yPos
+
+    def determinePosition(self, p1, p2) :
+        '''
+        Determine the position and zoom of the camera based on player positions.
+        :param p1: Player 1.
+        :param p2: Player 2.
+        :return: None
+        '''
+        self.xPos = self.WIDTH/2.0 - (p1.getXPos() + p2.getXPos())/2.0
+        self.yPos = self.HEIGHT/2.0 - (p1.getYPos() + p2.getYPos())/2.0
+
+        print "Camera Pos: ", self.xPos, self.yPos
+
+
 
     def transToGameScreen(self, x, y) :
         '''
@@ -52,7 +68,7 @@ class Camera :
         :param h: height to zoom.
         :return: Tuple - (w,h)
         '''
-        return w*self.zoom, h*self.zoom
+        return int(w*self.zoom), int(h*self.zoom)
 
 
 

@@ -31,17 +31,18 @@ class GameManager :
         self.sprites = self.getImages(pygame)
 
         self.physics = Physics()
-        self.camera = Camera(0, 0, 1, self.WIDTH, self.HEIGHT, 100)
+        self.camera = Camera(0, 0, 1, self.WIDTH, self.HEIGHT, 100, 3, 0.1)
 
         self.ground = GameObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180))
-        self.player1 = Sprite(self.sprites, 100, 100, 50*0.75, 100*0.75, (0, 0, 0))
-        self.player2 = Sprite(self.sprites, 100, 200, 50, 100, (0, 0, 0))
+        self.player1 = Sprite(self.sprites, 100, 200, 50, 100, (0, 0, 0))
+        self.player2 = Sprite(self.sprites, 300, 200, 50, 100, (0, 0, 0))
 
     def update(self) :
         '''
         Update the game manager.
         :return: None
         '''
+        self.camera.determinePosition(self.player1, self.player2)
         self.player1.update(self.physics)
         self.player2.update(self.physics)
 
@@ -144,9 +145,24 @@ class GameObject :
         self.outline = col2
 
     def draw(self, screen, pygame, camera) :
-        pygame.draw.rect(screen, self.fill, (self.xPos, self.yPos, self.width, self.height))
-        pygame.draw.rect(screen, self.outline, (self.xPos, self.yPos, self.width, self.height), 1)
 
+        pos = camera.transToGameScreen(self.xPos, self.yPos)
+        size = camera.zoomToGameScreen(self.width, self.height)
+
+        pygame.draw.rect(screen, self.fill, (pos[0], pos[1], size[0], size[1]))
+        pygame.draw.rect(screen, self.outline, (pos[0], pos[1], size[0], size[1]), 1)
+
+    def getXPos(self) :
+        return self.xPos
+
+    def getYPos(self) :
+        return self.yPos
+
+    def getWidth(self) :
+        return self.width
+
+    def getHeight(self) :
+        return self.height
 
 
 class Sprite (GameObject) :
