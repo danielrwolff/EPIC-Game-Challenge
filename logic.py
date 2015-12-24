@@ -20,9 +20,8 @@ class Logic :
         self.window = Screen(_SIZE, _CAPTION)
         self.events = EventHandler()
 
-        self.gameManager = GameManager(pygame)
+        self.gameManager = GameManager(pygame, _SIZE)
         self.audioManager = AudioManager()
-
 
         #self.audioManager.playRandomSong()
 
@@ -61,6 +60,7 @@ class Logic :
         :param key: event.key
         :return: None
         '''
+        self.gameManager.doKeyDown(key)
 
     def doKeyUp(self, key) :
         '''
@@ -68,6 +68,7 @@ class Logic :
         :param key: event.key
         :return: None
         '''
+        self.gameManager.doKeyUp(key)
 
     def doMouseDown(self, mouse) :
         '''
@@ -103,7 +104,7 @@ class Screen :
         Clear the pygame screen and all surfaces.
         :return: None
         '''
-        self.screen.fill((0, 0, 0))
+        self.screen.fill((230, 230, 230))
 
     def flip(self) :
         '''
@@ -239,14 +240,6 @@ class AudioManager :
             v -= self.fadeRate
 
 
-
-class DataManager :
-
-    def __init__(self) :
-        '''
-        Initialize the data manager and load all the data.
-        :return: None
-        '''
 
 
 
