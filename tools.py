@@ -46,16 +46,16 @@ class Camera :
         :return: None
         '''
 
-        dx = abs(p1.getXPos() - p2.getXPos())
-        dy = abs(p1.getYPos() - p2.getYPos())
+        dx = abs(p1.getXCenter() - p2.getXCenter())
+        dy = abs(p1.getYCenter() - p2.getYCenter())
 
-        if dx >= dy :
+        if dx > dy :
             self.zoom = self.WIDTH/(dx + self.buffer)
         else:
             self.zoom = self.HEIGHT/(dy + self.buffer)
 
-        self.xPos = (p1.getXPos() + p2.getXPos())/2.0
-        self.yPos = (p1.getYPos() + p2.getYPos())/2.0
+        self.xPos = (p1.getXCenter() + p2.getXCenter())/2.0
+        self.yPos = (p1.getYCenter() + p2.getYCenter())/2.0
 
     def transToGameScreen(self, x, y) :
         '''
@@ -64,7 +64,6 @@ class Camera :
         :param y: y position to translate.
         :return: Tuple - (x,y)
         '''
-        #return (x + self.xPos)*self.zoom, (y + self.yPos)*self.zoom
         return (x - self.xPos)*self.zoom + self.WIDTH/2.0, (y-self.yPos)*self.zoom + self.HEIGHT/2.0
 
     def zoomToGameScreen(self, w, h) :
@@ -85,7 +84,7 @@ class Physics :
         Initialize the physics instance.
         :return: None
         '''
-        self.gravity = Vector(0, 90)
+        self.gravity = Vector(0.98, 90)
 
     def applyGravity(self, v) :
         '''

@@ -33,7 +33,7 @@ class GameManager :
         self.physics = Physics()
         self.camera = Camera(0, 0, 1, self.WIDTH, self.HEIGHT, 200, 3, 0.1)
 
-        self.ground = GameObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180))
+        self.ground = EnvObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'B')
         self.player1 = Sprite(self.sprites, 100, 200, 50, 100, (0, 0, 0))
         self.player2 = Sprite(self.sprites, 300, 200, 50, 100, (0, 0, 0))
 
@@ -43,8 +43,8 @@ class GameManager :
         :return: None
         '''
         self.camera.determinePosition(self.player1, self.player2)
-        self.player1.update(self.physics)
-        self.player2.update(self.physics)
+        self.player1.update(self.physics, [self.ground]) #TEMP
+        self.player2.update(self.physics, [self.ground]) #TEMP
 
     def draw(self, screen, pygame) :
         '''
@@ -109,15 +109,17 @@ class GameManager :
         leftAnim = []
         rightAnim = []
 
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right.png")).convert_alpha())
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Stationary_Right.png")).convert_alpha())
         for i in range(1, 7) :
             rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Walk_Right" + str(i) + ".png")).convert_alpha())
 
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right.png")).convert_alpha())
+
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Stationary_Left.png")).convert_alpha())
         for i in range(1, 7) :
             leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Walk_Left" + str(i) + ".png")).convert_alpha())
+
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left.png")).convert_alpha())
 
         return [leftAnim, rightAnim]
 
@@ -125,15 +127,15 @@ class GameManager :
 
 class GameObject :
 
-    def __init__(self, xPos, yPos, width, height, col1, col2) :
+    def __init__(self, xPos, yPos, width, height, fill=(0,0,0), outline=(0,0,0)) :
         '''
         Initialize the game object.
         :param xPos: X position.
         :param yPos: Y position.
         :param width: Width of object.
         :param height: Height of object.
-        :param col1: Fill colour.
-        :param col2: Outline colour.
+        :param fill: Fill colour.
+        :param outline: Outline colour.
         :return: None
         '''
 
@@ -141,16 +143,8 @@ class GameObject :
         self.yPos = yPos
         self.width = width
         self.height = height
-        self.fill = col1
-        self.outline = col2
-
-    def draw(self, screen, pygame, camera) :
-
-        pos = camera.transToGameScreen(self.xPos, self.yPos)
-        size = camera.zoomToGameScreen(self.width, self.height)
-
-        pygame.draw.rect(screen, self.fill, (pos[0], pos[1], size[0], size[1]))
-        pygame.draw.rect(screen, self.outline, (pos[0], pos[1], size[0], size[1]), 1)
+        self.fill = fill
+        self.outline = outline
 
     def getXPos(self) :
         return self.xPos
@@ -176,19 +170,22 @@ class Sprite (GameObject) :
         :return: None
         '''
 
-        GameObject.__init__(self, xPos, yPos, width, height, (255, 255, 255), col)
+        GameObject.__init__(self, xPos, yPos, width, height)
 
         self.animContent = anim
+
+        self.hitBoxes = [   (10,0,30,30), (15,30,20,70)   ]
+
 
         self.direction = 'L'
         self.move = False
         self.grounded = True
-        self.stage = 1
+        self.animStage = 0
         '''
-        Stage 0: Fall
-        Stage 1: Stand Stationary
-        Stage 2 - 3: Start running
-        Stage 4 - 7: Running animation
+        Stage 0: Stand Stationary
+        Stage 1 - 2: Start running
+        Stage 3 - 6: Running animation
+        Stage 7: Fall
         '''
         self.frameDelay = 3
         self.frameCount = 0
@@ -199,7 +196,7 @@ class Sprite (GameObject) :
 
         self.vel = Vector(0, 0)
 
-    def update(self, physics) :
+    def update(self, physics, objs) :
         '''
         Update the sprite.
         :param physics: Physics instance.
@@ -223,10 +220,13 @@ class Sprite (GameObject) :
 
         self.vel = physics.applyGravity(self.vel)
 
-        if self.stage >= 3 or self.stage == 0 :
+        if self.animStage >= 2 or self.animStage == 7 :
             self.xPos += self.vel.getMagX()
 
         self.yPos += self.vel.getMagY()
+
+        # COLLISIONS
+        self.checkCollisions(objs)
 
         # When the frame count is greater than or equal to the frame delay, update the stage.
         if self.frameCount >= self.frameDelay :
@@ -235,28 +235,40 @@ class Sprite (GameObject) :
             if self.grounded :
                 # ...
                 if self.move :
-                    if self.stage >= 7 :
-                        self.stage = 4
+                    if self.animStage >= 6 :
+                        self.animStage = 3
                     else :
-                        self.stage += 1
+                        self.animStage += 1
                 else :
-                    self.stage = 1
+                    self.animStage = 0
             else :
-                self.stage = 0
+                self.animStage = 7
 
     def draw(self, screen, pygame, camera) :
         '''
         Draw the sprite.
         :param screen: Surface to draw to.
         :param pygame: Pygame instance.
+        :param camera: Camera instance.
         :return: None
         '''
+
+        ### TEMP
+
+        for i in self.hitBoxes :
+            pos = camera.transToGameScreen(self.xPos + i[0], self.yPos + i[1])
+            zoom = camera.zoomToGameScreen(int(i[2]), int(i[3]))
+
+            pygame.draw.rect(screen, (255,(i[1]*2),0), (pos[0], pos[1], zoom[0], zoom[1]))
+
+        ### TEMP
+
         if self.direction == 'L' :
-            screen.blit(pygame.transform.smoothscale(self.animContent[0][self.stage],
+            screen.blit(pygame.transform.smoothscale(self.animContent[0][self.animStage],
                                                         camera.zoomToGameScreen(int(self.width), int(self.height))),
                                                         camera.transToGameScreen(self.xPos, self.yPos))
         else :
-            screen.blit(pygame.transform.smoothscale(self.animContent[1][self.stage],
+            screen.blit(pygame.transform.smoothscale(self.animContent[1][self.animStage],
                                                         camera.zoomToGameScreen(int(self.width), int(self.height))),
                                                         camera.transToGameScreen(self.xPos, self.yPos))
 
@@ -284,9 +296,72 @@ class Sprite (GameObject) :
         '''
         self.move = False
 
+    def checkCollisions(self, objs) :
+        '''
+        Check for any collisions with the given objects.
+        :param objs: Objects.
+        :return: None
+        '''
+
+        for i in objs :
+            boundary = i.getBoundary()
+            if boundary == 'L' and self.xPos + self.hitBoxes[1][0] < i.getXPos() + i.getWidth() :
+                self.xPos = i.getXPos() + i.getWidth() - self.hitBoxes[1][0]
+                self.vel.setMagX(0)
+
+            elif boundary == 'R' and self.xPos + self.hitBoxes[1][0] + self.hitBoxes[1][2] > i.getXPos() :
+                self.xPos = i.getXPos() - self.hitBoxes[1][0] - self.hitBoxes[1][2]
+                self.vel.setMagX(0)
+
+            elif boundary == 'B' and self.yPos + self.height > i.getYPos() :
+                self.yPos = i.getYPos() - self.height
+                self.vel.setMagY(0)
+                self.grounded = True
+
+            else :
+                # Probably need some better collision here, but this should do for now:
+                if (i.getXPos() < self.xPos + self.hitBoxes[1][0] + self.hitBoxes[1][2] and
+                            self.xPos + self.hitBoxes[1][0] < i.getXPos() + i.getWidth() and
+                            i.getYPos() < self.yPos + self.height < i.getYPos() + i.getHeight()) :
+
+                    self.yPos = i.getYPos() - self.height
+                    self.vel.setMagY(0)
+                    self.grounded = True
 
 
 
+    def getXCenter(self) :
+        return self.getXPos() + self.getWidth()/2.0
+
+    def getYCenter(self) :
+        return self.getYPos() + self.getHeight()/2.0
 
 
+
+class EnvObject (GameObject) :
+
+    def __init__(self, xPos, yPos, width, height, fill, outline, boundary = 'NA'):
+        '''
+        Initializes an environment object.
+        :param xPos: x position.
+        :param yPos: y position.
+        :param width: width of object.
+        :param height: height of object.
+        :param fill: fill colour.
+        :param outline: outline colour.
+        :return: None
+        '''
+        GameObject.__init__(self, xPos, yPos, width, height, fill, outline)
+        self.boundary = boundary
+
+    def draw(self, screen, pygame, camera) :
+
+        pos = camera.transToGameScreen(self.xPos, self.yPos)
+        size = camera.zoomToGameScreen(self.width, self.height)
+
+        pygame.draw.rect(screen, self.fill, (pos[0], pos[1], size[0], size[1]))
+        pygame.draw.rect(screen, self.outline, (pos[0], pos[1], size[0], size[1]), 1)
+
+    def getBoundary(self) :
+        return self.boundary
 
