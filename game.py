@@ -31,9 +31,14 @@ class GameManager :
         self.sprites = self.getImages(pygame)
 
         self.physics = Physics()
-        self.camera = Camera(0, 0, 1, self.WIDTH, self.HEIGHT, 200, 3, 0.1)
+        self.camera = Camera(0, 0, 1, self.WIDTH, self.HEIGHT, 200, 1, 0.5)
 
-        self.ground = EnvObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'B')
+        self.environment = []
+        self.environment.append(EnvObject(0, 0, 50, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'L'))
+        self.environment.append(EnvObject(self.WIDTH - 50, 0, 50, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'R'))
+        self.environment.append(EnvObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'B'))
+        self.environment.append(EnvObject(100, self.HEIGHT/2.0, self.WIDTH/2.0, 10, (200, 200, 200), (180, 180, 180)))
+
         self.player1 = Sprite(self.sprites, 100, 200, 50, 100, (0, 0, 0))
         self.player2 = Sprite(self.sprites, 300, 200, 50, 100, (0, 0, 0))
 
@@ -43,17 +48,23 @@ class GameManager :
         :return: None
         '''
         self.camera.determinePosition(self.player1, self.player2)
-        self.player1.update(self.physics, [self.ground]) #TEMP
-        self.player2.update(self.physics, [self.ground]) #TEMP
+        self.player1.update(self.physics, self.environment)
+        self.player2.update(self.physics, self.environment)
 
     def draw(self, screen, pygame) :
         '''
         Draw the objects within the game manager.
         :return: None
         '''
+
+        for i in self.environment :
+            i.draw(screen, pygame, self.camera)
+
         self.player1.draw(screen, pygame, self.camera)
         self.player2.draw(screen, pygame, self.camera)
-        self.ground.draw(screen, pygame, self.camera)
+
+
+
 
     def doKeyDown(self, key) :
         '''
@@ -114,12 +125,16 @@ class GameManager :
             rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Walk_Right" + str(i) + ".png")).convert_alpha())
 
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right3.png")).convert_alpha())
 
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Stationary_Left.png")).convert_alpha())
         for i in range(1, 7) :
             leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Walk_Left" + str(i) + ".png")).convert_alpha())
 
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left3.png")).convert_alpha())
 
         return [leftAnim, rightAnim]
 
@@ -180,19 +195,20 @@ class Sprite (GameObject) :
         self.direction = 'L'
         self.move = False
         self.grounded = True
+        self.allowDoubleJump = True
         self.animStage = 0
         '''
         Stage 0: Stand Stationary
         Stage 1 - 2: Start running
         Stage 3 - 6: Running animation
-        Stage 7: Fall
+        Stage 7 - 9: Falling animation
         '''
         self.frameDelay = 3
         self.frameCount = 0
 
         self.groundSpeed = 5
         self.fallSpeedX = 3
-        self.jumpSpeed = -10
+        self.jumpSpeed = -15
 
         self.vel = Vector(0, 0)
 
@@ -225,6 +241,8 @@ class Sprite (GameObject) :
 
         self.yPos += self.vel.getMagY()
 
+        self.grounded = False
+
         # COLLISIONS
         self.checkCollisions(objs)
 
@@ -242,7 +260,12 @@ class Sprite (GameObject) :
                 else :
                     self.animStage = 0
             else :
-                self.animStage = 7
+                if self.vel.getMagY() < -3 :
+                    self.animStage = 7
+                elif self.vel.getMagY() > 3 :
+                    self.animStage = 9
+                else :
+                    self.animStage = 8
 
     def draw(self, screen, pygame, camera) :
         '''
@@ -286,8 +309,12 @@ class Sprite (GameObject) :
         Make the player jump.
         :return: None
         '''
-        self.grounded = False
-        self.vel.setMagY(self.jumpSpeed)
+        if self.grounded :
+            self.vel.setMagY(self.jumpSpeed)
+            self.grounded = False
+        elif self.allowDoubleJump and not self.grounded :
+            self.vel.setMagY(self.jumpSpeed)
+            self.allowDoubleJump = False
 
     def stop(self) :
         '''
@@ -317,16 +344,19 @@ class Sprite (GameObject) :
                 self.yPos = i.getYPos() - self.height
                 self.vel.setMagY(0)
                 self.grounded = True
+                self.allowDoubleJump = True
 
             else :
                 # Probably need some better collision here, but this should do for now:
                 if (i.getXPos() < self.xPos + self.hitBoxes[1][0] + self.hitBoxes[1][2] and
                             self.xPos + self.hitBoxes[1][0] < i.getXPos() + i.getWidth() and
-                            i.getYPos() < self.yPos + self.height < i.getYPos() + i.getHeight()) :
+                            i.getYPos() < self.yPos + self.height < i.getYPos() + i.getHeight() and
+                            self.vel.getMagY() > 0) :
 
                     self.yPos = i.getYPos() - self.height
                     self.vel.setMagY(0)
                     self.grounded = True
+                    self.allowDoubleJump = True
 
 
 

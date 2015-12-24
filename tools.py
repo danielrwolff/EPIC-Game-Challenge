@@ -54,6 +54,11 @@ class Camera :
         else:
             self.zoom = self.HEIGHT/(dy + self.buffer)
 
+        if self.zoom < self.minZoom :
+            self.zoom = self.minZoom
+        elif self.zoom > self.maxZoom :
+            self.zoom = self.maxZoom
+
         self.xPos = (p1.getXCenter() + p2.getXCenter())/2.0
         self.yPos = (p1.getYCenter() + p2.getYCenter())/2.0
 
