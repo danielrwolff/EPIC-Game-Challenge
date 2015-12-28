@@ -90,20 +90,20 @@ class GameManager :
         elif key == self.P1UP :
             self.player1.jump()
         elif key == self.P1DOWN :
-            print key
+            self.player1.crouch()
         elif key == self.P1LEFT :
-            self.player1.goDirection('L')
+            self.player1.goDirection(-1)
         elif key == self.P1RIGHT :
-            self.player1.goDirection('R')
+            self.player1.goDirection(1)
 
         elif key == self.P2UP :
             self.player2.jump()
         elif key == self.P2DOWN :
-            print key
+            self.player2.crouch()
         elif key == self.P2LEFT :
-            self.player2.goDirection('L')
+            self.player2.goDirection(-1)
         elif key == self.P2RIGHT :
-            self.player2.goDirection('R')
+            self.player2.goDirection(1)
 
     def doKeyUp(self, key) :
         '''
@@ -113,17 +113,17 @@ class GameManager :
         '''
         #if key == self.P1UP :
         #    print key
-        #elif key == self.P1DOWN :
-        #    print key
-        if key == self.P1LEFT :
+        if key == self.P1DOWN :
+            self.player1.stand()
+        elif key == self.P1LEFT :
             self.player1.stop()
         elif key == self.P1RIGHT :
             self.player1.stop()
 
         #elif key == self.P2UP :
         #    print key
-        #elif key == self.P2DOWN :
-        #    print key
+        elif key == self.P2DOWN :
+            self.player2.stand()
         elif key == self.P2LEFT :
             self.player2.stop()
         elif key == self.P2RIGHT :
@@ -147,9 +147,14 @@ class GameManager :
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right2.png")).convert_alpha())
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right3.png")).convert_alpha())
 
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Crouch_Right1.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Crouch_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Crouch_Right3.png")).convert_alpha())
+
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Punch_Right1.png")).convert_alpha())
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Punch_Right2.png")).convert_alpha())
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Punch_Right3.png")).convert_alpha())
+        rightAnim.append(rightAnim[-1])
 
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Stationary_Left.png")).convert_alpha())
         for i in range(1, 7) :
@@ -159,9 +164,21 @@ class GameManager :
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left2.png")).convert_alpha())
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left3.png")).convert_alpha())
 
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Crouch_Left1.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Crouch_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Crouch_Left3.png")).convert_alpha())
+
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left1.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left3.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left4.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left5.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left6.png")).convert_alpha())
+
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Punch_Left1.png")).convert_alpha())
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Punch_Left2.png")).convert_alpha())
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Punch_Left3.png")).convert_alpha())
+        leftAnim.append(leftAnim[-1])
 
         return [leftAnim, rightAnim]
 
@@ -219,27 +236,29 @@ class Sprite (GameObject) :
 
         self.hitBoxes = [   (10,0,30,30), (15,30,20,70)   ]
 
-
-        self.direction = 'L'
-        self.move = False
-        self.attack = False
-        self.attackType = 'NA'
-        self.attackStages = [[10, 12, 14, 16],[]]
+        self.currentDir = 0
+        self.lastDir = 'L'
+        self.attackStages = ((17,20),())
         self.grounded = True
         self.allowDoubleJump = True
         self.animStage = 0
+        self.action = 0
+
         '''
-        Stage 0: Stand Stationary
-        Stage 1 - 2: Start running
-        Stage 3 - 6: Running animation
-        Stage 7 - 9: Falling animation
-        Stage 10 - 12: Punch animation 1
+        Action 0, Anim 0: Stand Stationary
+        Action 1, Anim 1: Start running
+        Action 2, Anim 2 - 6: Running animation
+        Action 3, Anim 7 - 9: Falling animation
+        Action 4, Anim 10 - 12: Crouch animation
+        Action 5, Anim 13 - 18: Roll animation 1
         '''
+
         self.frameDelay = 3
         self.frameCount = 0
 
         self.groundSpeed = 5
         self.dashDistance = 6/3
+        self.rollDistance = 5
         self.fallSpeedX = 3
         self.jumpSpeed = -15
 
@@ -253,78 +272,71 @@ class Sprite (GameObject) :
         '''
         self.frameCount += 1
 
-        if self.move :
+        if self.currentDir == -1 :
+            self.lastDir = 'L'
+        elif self.currentDir == 1 :
+            self.lastDir = 'R'
+
+        if 2 <= self.action <= 3 :
             if self.grounded :
-                if self.direction == 'L' :
-                    self.vel.setMagX(self.groundSpeed*-1)
-                else :
-                    self.vel.setMagX(self.groundSpeed)
+                self.vel.setMagX(self.groundSpeed * self.currentDir)
             else :
-                if self.direction == 'L' :
-                    self.vel.setMagX(self.fallSpeedX*-1)
-                else :
-                    self.vel.setMagX(self.fallSpeedX)
+                self.vel.setMagX(self.fallSpeedX * self.currentDir)
         else :
             self.vel.setMagX(0)
 
         self.vel = physics.applyGravity(self.vel)
 
-        if 2 <= self.animStage <= 9 :
+        if 2 <= self.action <= 3 :
             self.xPos += self.vel.getMagX()
-        elif 10 <= self.animStage <= 12 :
-            if self.direction == 'L' :
-                self.xPos += self.dashDistance * -1
-            else :
-                self.xPos += self.dashDistance
+        elif self.action == 5 :
+            self.xPos += self.rollDistance * self.currentDir
 
         self.yPos += self.vel.getMagY()
 
         # COLLISIONS
         self.checkCollisions(objs)
 
+        if self.grounded and self.action == 3 :
+            if self.currentDir != 0 :
+                self.action = 1
+            else :
+                self.action = 0
+        elif not self.grounded and self.action <= 2 :
+            self.action = 3
+
         # When the frame count is greater than or equal to the frame delay, update the stage.
         if self.frameCount >= self.frameDelay :
             self.frameCount = 0
 
-            if self.grounded :
+            if self.action == 0 :
+                self.animStage = 0
 
-                # Attack animations.
-                if self.attack :
+            elif self.action == 1:
+                self.animStage += 1
+                self.action += 1
+
+            elif self.action == 2:
+                if self.animStage < 6 :
                     self.animStage += 1
-                    for i in range(1,4) :
-                        if self.attackType == 'P'*i and self.animStage >= self.attackStages[0][i] :
-                            self.attack = False
-                            self.attackType = 'NA'
-                        #elif self.attackType == 'K'*i and self.animStage >= self.attackStages[1][i] :
-                        #    self.attack = False
-                        #    self.attackType = 'NA'
-
-
-                # Moving animations.
-                elif self.move :
-                    if self.animStage >= 6 :
-                        self.animStage = 3
-                    else :
-                        self.animStage += 1
-
-                # Sprite is stationary.
                 else :
-                    self.animStage = 0
-            else :
+                    self.animStage = 3
 
-                # Air attack animations.
-                if self.attack :
-                    #######
-                    pass ##
-                    #######
-
-                # Air animations.
-                elif self.vel.getMagY() < -3 :
+            elif self.action == 3:
+                if self.vel.getMagY() < -3 :
                     self.animStage = 7
                 elif self.vel.getMagY() > 3 :
                     self.animStage = 9
                 else :
                     self.animStage = 8
+
+            elif self.action == 4:
+                pass
+            elif self.action == 5:
+                pass
+
+
+
 
     def draw(self, screen, pygame, camera) :
         '''
@@ -345,7 +357,7 @@ class Sprite (GameObject) :
 
         ### TEMP
 
-        if self.direction == 'L' :
+        if self.lastDir == 'L' :
             screen.blit(pygame.transform.smoothscale(self.animContent[0][self.animStage],
                                                         camera.zoomToGameScreen(int(self.width), int(self.height))),
                                                         camera.transToGameScreen(self.xPos, self.yPos))
@@ -360,18 +372,22 @@ class Sprite (GameObject) :
         :param direction: (Char) Direction.
         :return: None
         '''
-        self.direction = direction
-        self.move = True
+        self.currentDir = direction
+        if self.grounded :
+            self.action = 1
+        else :
+            self.action = 3
 
     def jump(self) :
         '''
         Make the player jump.
         :return: None
         '''
+        self.action = 3
         if self.grounded :
             self.vel.setMagY(self.jumpSpeed)
             self.grounded = False
-        elif self.allowDoubleJump and not self.grounded :
+        elif self.allowDoubleJump :
             self.vel.setMagY(self.jumpSpeed)
             self.allowDoubleJump = False
 
@@ -380,30 +396,22 @@ class Sprite (GameObject) :
         Stops the player from running.
         :return: None
         '''
-        self.move = False
+        self.currentDir = 0
+        self.action = 0
 
     def punch(self) :
-        self.attack = True
-        self.assignAttack('P', self.attackStages[0])
+        #self.action = 6
+        return
 
     def kick(self) :
-        self.attack = True
-        #self.assignAttack('K')
+        #self.action = 7
+        return
 
-    def assignAttack(self, a, l) :
-        '''
-        Assign an attack to the sprite.
-        :param a: Attack type.
-        :param l: List of corresponding attack stages.
-        :return: None
-        '''
-        if self.animStage < l[0] :
-            self.attackType = a
-            self.animStage = l[0]
-        elif l[0] < self.animStage < l[1] :
-            self.attackType = 2*a
-        elif l[1] < self.animStage < l[2] :
-            self.attackType = 3*a
+    def crouch(self) :
+        self.action = 4
+
+    def stand(self) :
+        self.action = 0
 
     def checkCollisions(self, objs) :
         '''
