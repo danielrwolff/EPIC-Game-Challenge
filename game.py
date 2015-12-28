@@ -151,6 +151,13 @@ class GameManager :
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Crouch_Right2.png")).convert_alpha())
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Crouch_Right3.png")).convert_alpha())
 
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right1.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right3.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right4.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right5.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right6.png")).convert_alpha())
+
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Punch_Right1.png")).convert_alpha())
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Punch_Right2.png")).convert_alpha())
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Punch_Right3.png")).convert_alpha())
@@ -240,7 +247,9 @@ class Sprite (GameObject) :
         self.lastDir = 'L'
         self.attackStages = ((17,20),())
         self.grounded = True
+        self.crouched = False
         self.allowDoubleJump = True
+        self.allowStateChange = True
         self.animStage = 0
         self.action = 0
 
@@ -250,7 +259,8 @@ class Sprite (GameObject) :
         Action 2, Anim 2 - 6: Running animation
         Action 3, Anim 7 - 9: Falling animation
         Action 4, Anim 10 - 12: Crouch animation
-        Action 5, Anim 13 - 18: Roll animation 1
+        Action 5, Anim 13 - 18: Roll animation
+        Action 6, Anim 19 - 22: Punch animation 1
         '''
 
         self.frameDelay = 3
@@ -258,7 +268,7 @@ class Sprite (GameObject) :
 
         self.groundSpeed = 5
         self.dashDistance = 6/3
-        self.rollDistance = 5
+        self.rollDistance = 6
         self.fallSpeedX = 3
         self.jumpSpeed = -15
 
@@ -289,6 +299,9 @@ class Sprite (GameObject) :
 
         if 2 <= self.action <= 3 :
             self.xPos += self.vel.getMagX()
+        elif self.action == 4:
+            self.vel.setMagX(0)
+            self.currentDir = 0
         elif self.action == 5 :
             self.xPos += self.rollDistance * self.currentDir
 
@@ -302,7 +315,7 @@ class Sprite (GameObject) :
                 self.action = 1
             else :
                 self.action = 0
-        elif not self.grounded and self.action <= 2 :
+        elif not self.grounded and self.action <= 4 :
             self.action = 3
 
         # When the frame count is greater than or equal to the frame delay, update the stage.
@@ -310,7 +323,10 @@ class Sprite (GameObject) :
             self.frameCount = 0
 
             if self.action == 0 :
-                self.animStage = 0
+                if 10 < self.animStage <= 12 :
+                    self.animStage -= 1
+                else :
+                    self.animStage = 0
 
             elif self.action == 1:
                 self.animStage += 1
@@ -330,12 +346,27 @@ class Sprite (GameObject) :
                 else :
                     self.animStage = 8
 
-            elif self.action == 4:
-                pass
+            elif self.action == 4 :
+                if not self.crouched :
+                    if self.currentDir == 0 :
+                        self.action = 0
+                    else :
+                        self.action = 1
+                if 10 <= self.animStage < 12 :
+                    self.animStage += 1
+                else :
+                    self.animStage = 12
+
             elif self.action == 5:
-                pass
-
-
+                if self.animStage < 12 :
+                    self.animStage = 12
+                elif 12 <= self.animStage < 18 :
+                    self.animStage += 1
+                    self.allowStateChange = False
+                else :
+                    self.animStage = 12
+                    self.allowStateChange = True
+                    self.action = 4
 
 
     def draw(self, screen, pygame, camera) :
@@ -372,9 +403,15 @@ class Sprite (GameObject) :
         :param direction: (Char) Direction.
         :return: None
         '''
+        if not self.allowStateChange :
+            return
+
         self.currentDir = direction
         if self.grounded :
-            self.action = 1
+            if self.action == 4:
+                self.action = 5
+            else :
+                self.action = 1
         else :
             self.action = 3
 
@@ -383,6 +420,9 @@ class Sprite (GameObject) :
         Make the player jump.
         :return: None
         '''
+        if not self.allowStateChange :
+            return
+
         self.action = 3
         if self.grounded :
             self.vel.setMagY(self.jumpSpeed)
@@ -396,22 +436,65 @@ class Sprite (GameObject) :
         Stops the player from running.
         :return: None
         '''
+        if not self.allowStateChange :
+            return
+
         self.currentDir = 0
-        self.action = 0
+        if self.action not in (4, 5) :
+            self.action = 0
 
     def punch(self) :
+        '''
+        Make the sprite punch.
+        :return: None
+        '''
         #self.action = 6
+        if not self.allowStateChange :
+            return
         return
 
     def kick(self) :
+        '''
+        Make the sprite kick.
+        :return: None
+        '''
         #self.action = 7
+        if not self.allowStateChange :
+            return
         return
 
     def crouch(self) :
-        self.action = 4
+        '''
+        Make the sprite crouch.
+        :return: None
+        '''
+        self.crouched = True
+
+        if not self.allowStateChange :
+            return
+
+        if self.currentDir == 0 :
+            self.action = 4
+            self.animStage = 10
+        else :
+            self.action = 5
+            self.animStage = 12
+
 
     def stand(self) :
-        self.action = 0
+        '''
+        Make the sprite stand.
+        :return: None
+        '''
+        self.crouched = False
+
+        if not self.allowStateChange :
+            return
+
+        if self.currentDir == 0 :
+            self.action = 0
+        else :
+            self.action = 1
 
     def checkCollisions(self, objs) :
         '''
