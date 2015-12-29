@@ -277,6 +277,8 @@ class Sprite (GameObject) :
         self.fallSpeedX = 3
         self.jumpSpeed = -15
 
+        self.lastXPos = self.xPos
+        self.lastYPos = self.yPos
         self.vel = Vector(0, 0)
 
     def update(self, physics, objs) :
@@ -301,6 +303,9 @@ class Sprite (GameObject) :
             self.vel.setMagX(0)
 
         self.vel = physics.applyGravity(self.vel)
+
+        self.lastXPos = self.xPos
+        self.lastYPos = self.yPos
 
         if 2 <= self.action <= 3 :
             self.xPos += self.vel.getMagX()
@@ -417,11 +422,11 @@ class Sprite (GameObject) :
 
         ### TEMP
 
-        for i in self.hitBoxes[1] :
+        for i in self.hitBoxes[0] :
             pos = camera.transToGameScreen(self.xPos + i[0], self.yPos + i[1])
             zoom = camera.zoomToGameScreen(int(i[2]), int(i[3]))
 
-            #pygame.draw.rect(screen, (255,(i[1]*2),0), (pos[0], pos[1], zoom[0], zoom[1]))
+            pygame.draw.rect(screen, (255,(i[1]*2),0), (pos[0], pos[1], zoom[0], zoom[1]))
 
         ### TEMP
 
@@ -522,7 +527,6 @@ class Sprite (GameObject) :
         else :
             self.action = 5
 
-
     def stand(self) :
         '''
         Make the sprite stand.
@@ -564,17 +568,17 @@ class Sprite (GameObject) :
                 self.grounded = True
                 self.allowDoubleJump = True
 
-            else :
-                # Probably need some better collision here, but this should do for now:
+            elif boundary == 'NA' :
                 if (i.getXPos() < self.xPos + hitbox[0] + hitbox[2] and
                             self.xPos + hitbox[0] < i.getXPos() + i.getWidth() and
-                            i.getYPos() < self.yPos + self.height < i.getYPos() + i.getHeight() and
+                            self.lastYPos + self.height <= i.getYPos() < self.yPos + self.height and
                             self.vel.getMagY() > 0) :
 
                     self.yPos = i.getYPos() - self.height
                     self.vel.setMagY(0)
                     self.grounded = True
                     self.allowDoubleJump = True
+
 
     def getXCenter(self) :
         return self.getXPos() + self.getWidth()/2.0
