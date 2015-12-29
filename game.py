@@ -41,7 +41,7 @@ class GameManager :
         self.environment.append(EnvObject(0, 0, 50, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'L'))
         self.environment.append(EnvObject(self.WIDTH - 50, 0, 50, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'R'))
         self.environment.append(EnvObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'B'))
-        self.environment.append(EnvObject(100, self.HEIGHT/2.0, self.WIDTH/2.0, 10, (200, 200, 200), (180, 180, 180)))
+        self.environment.append(EnvObject(100, self.HEIGHT/2.0, self.WIDTH/2.0, 15, (200, 200, 200), (180, 180, 180)))
 
         self.player1 = Sprite(self.sprites, 100, 200, 50, 100, (0, 0, 0))
         self.player2 = Sprite(self.sprites, 300, 200, 50, 100, (0, 0, 0))
@@ -160,8 +160,9 @@ class GameManager :
 
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Punch_Right1.png")).convert_alpha())
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Punch_Right2.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Punch_Right3.png")).convert_alpha())
-        rightAnim.append(rightAnim[-1])
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "CrouchPunch_Right1.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "CrouchPunch_Right2.png")).convert_alpha())
+
 
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Stationary_Left.png")).convert_alpha())
         for i in range(1, 7) :
@@ -184,8 +185,10 @@ class GameManager :
 
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Punch_Left1.png")).convert_alpha())
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Punch_Left2.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Punch_Left3.png")).convert_alpha())
-        leftAnim.append(leftAnim[-1])
+
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "CrouchPunch_Left1.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "CrouchPunch_Left2.png")).convert_alpha())
+
 
         return [leftAnim, rightAnim]
 
@@ -234,6 +237,7 @@ class Sprite (GameObject) :
         :param anim: Animation images.
         :param xPos: X position.
         :param yPos: Y position.
+        :param col: Sprite colour.
         :return: None
         '''
 
@@ -241,11 +245,12 @@ class Sprite (GameObject) :
 
         self.animContent = anim
 
-        self.hitBoxes = [   (10,0,30,30), (15,30,20,70)   ]
+        self.hitBoxes = [   [(10,0,30,30), (15,30,20,70)],
+                            [(10,50,30,50)]                      ]
 
         self.currentDir = 0
-        self.lastDir = 'L'
-        self.attackStages = ((17,20),())
+        self.lastDir = -1
+        self.attackStages = ((19,20),(21,22))
         self.grounded = True
         self.crouched = False
         self.allowDoubleJump = True
@@ -283,9 +288,9 @@ class Sprite (GameObject) :
         self.frameCount += 1
 
         if self.currentDir == -1 :
-            self.lastDir = 'L'
+            self.lastDir = -1
         elif self.currentDir == 1 :
-            self.lastDir = 'R'
+            self.lastDir = 1
 
         if 2 <= self.action <= 3 :
             if self.grounded :
@@ -304,11 +309,16 @@ class Sprite (GameObject) :
             self.currentDir = 0
         elif self.action == 5 :
             self.xPos += self.rollDistance * self.currentDir
+        elif self.action in (6,8) :
+            self.xPos += self.dashDistance * self.lastDir
 
         self.yPos += self.vel.getMagY()
 
         # COLLISIONS
-        self.checkCollisions(objs)
+        if self.crouched :
+            self.checkCollisions(objs, self.hitBoxes[1][0])
+        else :
+            self.checkCollisions(objs, self.hitBoxes[0][1])
 
         if self.grounded and self.action == 3 :
             if self.currentDir != 0 :
@@ -329,8 +339,8 @@ class Sprite (GameObject) :
                     self.animStage = 0
 
             elif self.action == 1:
-                self.animStage += 1
-                self.action += 1
+                self.animStage = 1
+                self.action = 2
 
             elif self.action == 2:
                 if self.animStage < 6 :
@@ -352,7 +362,9 @@ class Sprite (GameObject) :
                         self.action = 0
                     else :
                         self.action = 1
-                if 10 <= self.animStage < 12 :
+                if self.animStage < 10 :
+                    self.animStage = 10
+                elif 10 <= self.animStage < 12 :
                     self.animStage += 1
                 else :
                     self.animStage = 12
@@ -360,6 +372,7 @@ class Sprite (GameObject) :
             elif self.action == 5:
                 if self.animStage < 12 :
                     self.animStage = 12
+                    self.allowStateChange = False
                 elif 12 <= self.animStage < 18 :
                     self.animStage += 1
                     self.allowStateChange = False
@@ -367,6 +380,30 @@ class Sprite (GameObject) :
                     self.animStage = 12
                     self.allowStateChange = True
                     self.action = 4
+
+            elif self.action == 6 :
+                if self.animStage < self.attackStages[0][0] :
+                    self.animStage = self.attackStages[0][0]
+                    self.allowStateChange = False
+                elif self.attackStages[0][0] <= self.animStage < self.attackStages[0][1]  :
+                    self.animStage += 1
+                else :
+                    self.allowStateChange = True
+                    if self.currentDir == 0 :
+                        self.action = 0
+                    else :
+                        self.action = 1
+
+            elif self.action == 7 :
+                if self.animStage < self.attackStages[1][0] :
+                    self.animStage = self.attackStages[1][0]
+                    self.allowStateChange = False
+                elif self.attackStages[1][0] <= self.animStage < self.attackStages[1][1]  :
+                    self.animStage += 1
+                else :
+                    self.allowStateChange = True
+                    self.action = 4
+
 
 
     def draw(self, screen, pygame, camera) :
@@ -380,7 +417,7 @@ class Sprite (GameObject) :
 
         ### TEMP
 
-        for i in self.hitBoxes :
+        for i in self.hitBoxes[1] :
             pos = camera.transToGameScreen(self.xPos + i[0], self.yPos + i[1])
             zoom = camera.zoomToGameScreen(int(i[2]), int(i[3]))
 
@@ -388,7 +425,7 @@ class Sprite (GameObject) :
 
         ### TEMP
 
-        if self.lastDir == 'L' :
+        if self.lastDir == -1 :
             screen.blit(pygame.transform.smoothscale(self.animContent[0][self.animStage],
                                                         camera.zoomToGameScreen(int(self.width), int(self.height))),
                                                         camera.transToGameScreen(self.xPos, self.yPos))
@@ -436,10 +473,13 @@ class Sprite (GameObject) :
         Stops the player from running.
         :return: None
         '''
+
+        if self.action not in (4, 5) :
+            self.currentDir = 0
+
         if not self.allowStateChange :
             return
 
-        self.currentDir = 0
         if self.action not in (4, 5) :
             self.action = 0
 
@@ -448,9 +488,13 @@ class Sprite (GameObject) :
         Make the sprite punch.
         :return: None
         '''
-        #self.action = 6
         if not self.allowStateChange :
             return
+
+        if self.action == 4 :
+            self.action = 7
+        else :
+            self.action = 6
         return
 
     def kick(self) :
@@ -475,10 +519,8 @@ class Sprite (GameObject) :
 
         if self.currentDir == 0 :
             self.action = 4
-            self.animStage = 10
         else :
             self.action = 5
-            self.animStage = 12
 
 
     def stand(self) :
@@ -496,10 +538,11 @@ class Sprite (GameObject) :
         else :
             self.action = 1
 
-    def checkCollisions(self, objs) :
+    def checkCollisions(self, objs, hitbox) :
         '''
         Check for any collisions with the given objects.
         :param objs: Objects.
+        :param hitbox: HItbox to check collisions with.
         :return: None
         '''
 
@@ -507,12 +550,12 @@ class Sprite (GameObject) :
 
         for i in objs :
             boundary = i.getBoundary()
-            if boundary == 'L' and self.xPos + self.hitBoxes[1][0] < i.getXPos() + i.getWidth() :
-                self.xPos = i.getXPos() + i.getWidth() - self.hitBoxes[1][0]
+            if boundary == 'L' and self.xPos + hitbox[0] < i.getXPos() + i.getWidth() :
+                self.xPos = i.getXPos() + i.getWidth() - hitbox[0]
                 self.vel.setMagX(0)
 
-            elif boundary == 'R' and self.xPos + self.hitBoxes[1][0] + self.hitBoxes[1][2] > i.getXPos() :
-                self.xPos = i.getXPos() - self.hitBoxes[1][0] - self.hitBoxes[1][2]
+            elif boundary == 'R' and self.xPos + hitbox[0] + hitbox[2] > i.getXPos() :
+                self.xPos = i.getXPos() - hitbox[0] - hitbox[2]
                 self.vel.setMagX(0)
 
             elif boundary == 'B' and self.yPos + self.height > i.getYPos() :
@@ -523,8 +566,8 @@ class Sprite (GameObject) :
 
             else :
                 # Probably need some better collision here, but this should do for now:
-                if (i.getXPos() < self.xPos + self.hitBoxes[1][0] + self.hitBoxes[1][2] and
-                            self.xPos + self.hitBoxes[1][0] < i.getXPos() + i.getWidth() and
+                if (i.getXPos() < self.xPos + hitbox[0] + hitbox[2] and
+                            self.xPos + hitbox[0] < i.getXPos() + i.getWidth() and
                             i.getYPos() < self.yPos + self.height < i.getYPos() + i.getHeight() and
                             self.vel.getMagY() > 0) :
 
