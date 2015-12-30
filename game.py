@@ -2,7 +2,7 @@
 # Daniel Wolff
 # 11/11/2015
 
-import os
+import os, copy
 from tools import *
 
 class GameManager :
@@ -43,8 +43,8 @@ class GameManager :
         self.environment.append(EnvObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'B'))
         self.environment.append(EnvObject(100, self.HEIGHT/2.0, self.WIDTH/2.0, 15, (200, 200, 200), (180, 180, 180)))
 
-        self.player1 = Sprite(self.sprites, 100, 200, 50, 100, (0, 0, 0))
-        self.player2 = Sprite(self.sprites, 300, 200, 50, 100, (0, 0, 0))
+        self.player1 = Sprite(pygame, self.sprites, 100, 200, 50, 100, (0, 0, 0))
+        self.player2 = Sprite(pygame, self.sprites, 300, 200, 50, 100, (255, 0, 0))
 
     def update(self) :
         '''
@@ -66,9 +66,6 @@ class GameManager :
 
         self.player1.draw(screen, pygame, self.camera)
         self.player2.draw(screen, pygame, self.camera)
-
-
-
 
     def doKeyDown(self, key) :
         '''
@@ -234,7 +231,7 @@ class GameObject :
 
 class Sprite (GameObject) :
 
-    def __init__(self, anim, xPos, yPos, width, height, col) :
+    def __init__(self, pygame, anim, xPos, yPos, width, height, col) :
         '''
         Initialize the sprite.
         :param anim: Animation images.
@@ -246,6 +243,7 @@ class Sprite (GameObject) :
 
         GameObject.__init__(self, xPos, yPos, width, height)
 
+        self.colour = col
         self.animContent = anim
 
         self.hitBoxes = [   [(10,0,30,30), (15,30,20,70)],
@@ -600,7 +598,6 @@ class Sprite (GameObject) :
 
     def getYCenter(self) :
         return self.getYPos() + self.getHeight()/2.0
-
 
 
 class EnvObject (GameObject) :
