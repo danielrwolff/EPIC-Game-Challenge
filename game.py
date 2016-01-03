@@ -331,9 +331,9 @@ class Sprite (GameObject) :
         self.lastXPos = self.xPos
         self.lastYPos = self.yPos
 
-        if self.action <= 3 :
+        if 1 <= self.action <= 3 :
             self.xPos += self.vel.getMagX()
-        elif self.action == 4:
+        elif self.action in (0,4):
             self.xPos += self.vel.getMagX()
             self.currentDir = 0
         elif self.action == 5 :
