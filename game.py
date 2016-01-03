@@ -2,7 +2,7 @@
 # Daniel Wolff
 # 11/11/2015
 
-import os, copy
+import os, random
 from tools import *
 
 class GameManager :
@@ -46,18 +46,25 @@ class GameManager :
         self.player1 = Sprite(pygame, self.sprites, 100, 200, 50, 100, (0, 0, 0))
         self.player2 = Sprite(pygame, self.sprites, 300, 200, 50, 100, (255, 0, 0))
 
+        self.attacks = [None,None]
+
     def update(self) :
         '''
         Update the game manager.
         :return: None
         '''
         self.camera.determinePosition(self.player1, self.player2)
-        self.player1.update(self.physics, self.environment)
-        self.player2.update(self.physics, self.environment)
+        self.attacks[0] = self.player1.update(self.physics, self.environment)
+        self.attacks[1] = self.player2.update(self.physics, self.environment)
+
+        self.player1.opposingAttacks(self.attacks[1])
+        self.player2.opposingAttacks(self.attacks[0])
 
     def draw(self, screen, pygame) :
         '''
         Draw the objects within the game manager.
+        :param screen: Screen to draw the objects on.
+        :param pygame: PyGame instance.
         :return: None
         '''
 
@@ -161,6 +168,8 @@ class GameManager :
 
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Kick_Right1.png")).convert_alpha())
         rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Kick_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Launch_Right.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Lay_Right.png")).convert_alpha())
 
 
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Stationary_Left.png")).convert_alpha())
@@ -188,10 +197,11 @@ class GameManager :
 
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Kick_Left1.png")).convert_alpha())
         leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Kick_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Launch_Left.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Lay_Left.png")).convert_alpha())
 
 
         return [leftAnim, rightAnim]
-
 
 
 class GameObject :
@@ -256,6 +266,7 @@ class Sprite (GameObject) :
         self.crouched = False
         self.allowDoubleJump = True
         self.allowStateChange = True
+        self.handicap = False
         self.animStage = 0
         self.action = 0
 
@@ -269,6 +280,8 @@ class Sprite (GameObject) :
         Action 6, Anim 18 - 19: Punch animation
         Action 7, Anim 20 - 21: Crouch Punch animation
         Action 8, Anim 22 - 23: Kick animation
+        Action 9, Anim 24: Launch animation
+        Action 10, Anim 25: Lay animation
         '''
 
         self.frameDelay = 3
@@ -279,6 +292,9 @@ class Sprite (GameObject) :
         self.rollDistance = 6
         self.fallSpeedX = 3
         self.jumpSpeed = -15
+        self.defaultLaunchSpeed = 10
+
+        self.damage = 0
 
         self.lastXPos = self.xPos
         self.lastYPos = self.yPos
@@ -289,7 +305,7 @@ class Sprite (GameObject) :
         Update the sprite.
         :param physics: Physics instance.
         :param objs: Environment objects.
-        :return: None
+        :return: Attack position (x,y), or None.
         '''
 
         ### POSITIONS
@@ -304,37 +320,42 @@ class Sprite (GameObject) :
             else :
                 self.vel.setMagX(self.fallSpeedX * self.currentDir)
         else :
-            self.vel.setMagX(0)
+            if self.grounded :
+                self.vel.setMagX(self.vel.getMagX()/2.0)
+                if abs(self.vel.getMagX()) < 1 :
+                    self.vel.setMagX(0)
 
         self.vel = physics.applyGravity(self.vel)
 
         self.lastXPos = self.xPos
         self.lastYPos = self.yPos
 
-        if 2 <= self.action <= 3 :
+        if self.action <= 3 :
             self.xPos += self.vel.getMagX()
         elif self.action == 4:
-            self.vel.setMagX(0)
+            self.xPos += self.vel.getMagX()
             self.currentDir = 0
         elif self.action == 5 :
             self.xPos += self.rollDistance * self.currentDir
         elif self.action in (6,8) :
             self.xPos += self.dashDistance * self.lastDir
+        elif self.action == 9 :
+            self.xPos += self.vel.getMagX()
 
         self.yPos += self.vel.getMagY()
         ###
 
         ### COLLISIONS
-        if self.crouched :
-            self.checkCollisions(objs, self.hitBoxes[1][0])
-        else :
-            self.checkCollisions(objs, self.hitBoxes[0][1])
+        self.checkCollisions(objs, self.hitBoxes[int(self.crouched)][int(not self.crouched)])
 
         if self.grounded and self.action == 3 :
             if self.currentDir != 0 :
                 self.action = 1
             else :
                 self.action = 0
+        elif self.grounded and self.action == 9 :
+            self.action = 0
+            self.handicap = False
         elif not self.grounded and self.action <= 4 :
             self.action = 3
         ###
@@ -381,7 +402,7 @@ class Sprite (GameObject) :
                     self.animStage = 11
 
             elif self.action == 5:
-                if self.animStage < 11 :
+                if self.animStage < 11 or self.animStage > 17 :
                     self.animStage = 11
                     self.allowStateChange = False
                 elif 11 <= self.animStage < 17 :
@@ -423,7 +444,41 @@ class Sprite (GameObject) :
                     self.animStage += 1
                 else :
                     self.allowStateChange = True
-                    self.action = 0
+                    if self.currentDir == 0 :
+                        self.action = 0
+                    else :
+                        self.action = 1
+
+            elif self.action == 9 :
+                self.allowStateChange = True
+                if self.animStage != 24 :
+                    self.animStage = 24
+
+            elif self.action == 10 :
+                self.allowStateChange = False
+                if self.animStage != 25 :
+                    self.animStage = 25
+        ###
+
+        ### ATTACKS
+        if self.lastDir == 1 :
+            if self.animStage == self.attackStages[0][1] :
+                return self.xPos + self.width, self.yPos + 40, self.xPos + self.width/2.0, self.lastDir
+            elif self.animStage == self.attackStages[1][1] :
+                return self.xPos + self.width, self.yPos + 75, self.xPos + self.width/2.0, self.lastDir
+            elif self.animStage == self.attackStages[2][1] :
+                return self.xPos + self.width, self.yPos + 70, self.xPos + self.width/2.0, self.lastDir
+            else :
+                return None
+        else :
+            if self.animStage == self.attackStages[0][1] :
+                return self.xPos, self.yPos + 40, self.xPos + self.width/2.0, self.lastDir
+            elif self.animStage == self.attackStages[1][1] :
+                return self.xPos, self.yPos + 75, self.xPos + self.width/2.0, self.lastDir
+            elif self.animStage == self.attackStages[2][1] :
+                return self.xPos, self.yPos + 70, self.xPos + self.width/2.0, self.lastDir
+            else :
+                return None
         ###
 
     def draw(self, screen, pygame, camera) :
@@ -445,19 +500,24 @@ class Sprite (GameObject) :
 
         ### TEMP
 
+        if self.animStage == 25 :
+            w = int(self.width*2)
+        else :
+            w = int(self.width)
+
         if self.lastDir == -1 :
             screen.blit(pygame.transform.smoothscale(self.animContent[0][self.animStage],
-                                                        camera.zoomToGameScreen(int(self.width), int(self.height))),
+                                                        camera.zoomToGameScreen(w, int(self.height))),
                                                         camera.transToGameScreen(self.xPos, self.yPos))
         else :
             screen.blit(pygame.transform.smoothscale(self.animContent[1][self.animStage],
-                                                        camera.zoomToGameScreen(int(self.width), int(self.height))),
+                                                        camera.zoomToGameScreen(w, int(self.height))),
                                                         camera.transToGameScreen(self.xPos, self.yPos))
 
     def goDirection(self, direction) :
         '''
         Move in the direction specified.
-        :param direction: (Char) Direction.
+        :param direction: (Int) Direction.
         :return: None
         '''
         if not self.allowStateChange :
@@ -467,6 +527,7 @@ class Sprite (GameObject) :
         if self.grounded :
             if self.action == 4:
                 self.action = 5
+
             else :
                 self.action = 1
         else :
@@ -570,11 +631,19 @@ class Sprite (GameObject) :
             boundary = i.getBoundary()
             if boundary == 'L' and self.xPos + hitbox[0] < i.getXPos() + i.getWidth() :
                 self.xPos = i.getXPos() + i.getWidth() - hitbox[0]
-                self.vel.setMagX(0)
+                if self.action == 9 :
+                    self.vel.setMagX(self.vel.getMagX()/-2.0)
+                    self.currentDir *= -1
+                else :
+                    self.vel.setMagX(0)
 
             elif boundary == 'R' and self.xPos + hitbox[0] + hitbox[2] > i.getXPos() :
                 self.xPos = i.getXPos() - hitbox[0] - hitbox[2]
-                self.vel.setMagX(0)
+                if self.action == 9 :
+                    self.vel.setMagX(self.vel.getMagX()/-2.0)
+                    self.currentDir *= -1
+                else :
+                    self.vel.setMagX(0)
 
             elif boundary == 'B' and self.yPos + self.height > i.getYPos() :
                 self.yPos = i.getYPos() - self.height
@@ -593,11 +662,69 @@ class Sprite (GameObject) :
                     self.grounded = True
                     self.allowDoubleJump = True
 
+    def opposingAttacks(self, a) :
+        '''
+        Check and handle any opposing attacks that were made by the other player.
+        :param a: Attack position (x,y).
+        :return: None
+        '''
+
+        if a is None or self.handicap :
+            return
+
+        if self.crouched and self.checkAttackCollisions(a, self.hitBoxes[1][0]) :
+            self.applyDamage(random.randint(15,20), a[3])
+
+        elif (not self.crouched) and self.checkAttackCollisions(a, self.hitBoxes[0][0]) :
+            self.applyDamage(random.randint(15,20), a[3])
+
+        elif (not self.crouched) and self.checkAttackCollisions(a, self.hitBoxes[0][1]) :
+            self.applyDamage(random.randint(7,12), a[3])
+
+
+    def applyDamage(self, dam, di) :
+        '''
+        Apply damage and manage launch speed.
+        :param dam: Damage
+        :param di: Direction
+        :return: None
+        '''
+
+        self.damage += dam
+        self.handicap = True
+        self.action = 9
+        self.currentDir = di
+
+        print self.damage
+
+        if self.damage <= 50 :
+            self.vel = Vector(self.defaultLaunchSpeed*di, random.randint(-30,-20)*di)
+        else :
+            self.vel = Vector(int(self.defaultLaunchSpeed*(self.damage/50.0))*di, random.randint(-45,-30)*di)
+
+    def checkAttackCollisions(self, a, hitbox) :
+        '''
+        Checks to see if an attack landed a hit.
+        :param a: Position of the attack (x,y).
+        :param hitbox: Current hitbox.
+        :return: Boolean - True if hit, False if not.
+        '''
+
+        if (((a[2] <= self.xPos + hitbox[0] <= a[0] and a[3] == 1) or
+                (a[0] <= self.xPos + hitbox[0] + hitbox[2] <= a[2] and a[3] == -1)) and
+                self.yPos + hitbox[1] <= a[1] <= self.yPos + hitbox[1] + hitbox[3]) :
+            return True
+        return False
+
     def getXCenter(self) :
         return self.getXPos() + self.getWidth()/2.0
 
     def getYCenter(self) :
         return self.getYPos() + self.getHeight()/2.0
+
+    def getDamage(self) :
+        return self.damage
+
 
 
 class EnvObject (GameObject) :

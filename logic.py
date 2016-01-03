@@ -2,7 +2,7 @@
 # Daniel Wolff
 # 10/21/2015
 
-import pygame, random
+import pygame
 from game import GameManager
 
 class Logic :
@@ -22,8 +22,6 @@ class Logic :
 
         self.gameManager = GameManager(pygame, _SIZE)
         self.audioManager = AudioManager()
-
-        #self.audioManager.playRandomSong()
 
         self.mouse = (0, 0)
 
@@ -196,13 +194,6 @@ class AudioManager :
         '''
         self.adjustVolume(self.musicVolume)
         self.adjustVolume(self.sfxVolume)
-
-    def playRandomSong(self) :
-        '''
-        Play a random song in the song list.
-        :return: None
-        '''
-        self.resChannels["mus"].play(random.choice(self.songs))
 
     def setFadeRate(self, r) :
         '''
