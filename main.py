@@ -4,7 +4,7 @@
 
 from logic import Logic
 
-SCREEN_SIZE = (400, 400)
+SCREEN_SIZE = (800, 600)
 SCREEN_CAPTION = "SSS Testing"
 
 def main() :
