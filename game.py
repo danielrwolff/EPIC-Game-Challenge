@@ -204,6 +204,7 @@ class GameManager :
         return [leftAnim, rightAnim]
 
 
+
 class GameObject :
 
     def __init__(self, xPos, yPos, width, height, fill=(0,0,0), outline=(0,0,0)) :
@@ -680,7 +681,6 @@ class Sprite (GameObject) :
 
         elif (not self.crouched) and self.checkAttackCollisions(a, self.hitBoxes[0][1]) :
             self.applyDamage(random.randint(7,12), a[3])
-
 
     def applyDamage(self, dam, di) :
         '''
