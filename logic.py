@@ -3,7 +3,9 @@
 # 10/21/2015
 
 import pygame
+from os import path
 from game import GameManager
+from gui import UI_Gameplay, UI_Menu, UI_SplashScreen
 
 class Logic :
 
@@ -23,6 +25,13 @@ class Logic :
         self.gameManager = GameManager(pygame, _SIZE)
         self.audioManager = AudioManager()
 
+        self.menus = [  UI_SplashScreen(pygame, 0, 1, pygame.image.load(path.join("data", "Splash1.png")).convert()),
+                        UI_Menu(pygame, 1,[]),
+                        UI_Menu(pygame, 2,[]),
+                        UI_Gameplay(pygame, 3,[])           ]
+
+        self.currentMenu = 0
+        self.gameplayUI = 3
         self.mouse = (0, 0)
 
     def run(self) :
@@ -36,13 +45,19 @@ class Logic :
 
                 # Update objects
                 self.mouse = self.events.getMouse()
-                self.gameManager.update()
+
+                ############# UNNECESSARY?
+                if self.currentMenu == self.gameplayUI :
+                    self.gameManager.update()
+                self.menus[self.currentMenu].update()
 
                 # Refresh window
                 self.window.refresh()
 
                 # Draw objects
-                self.window.draw(self.gameManager)
+                if self.currentMenu == self.gameplayUI :
+                    self.window.draw(self.gameManager)
+                self.window.draw(self.menus[self.currentMenu])
 
                 # Flip window
                 self.window.flip()
@@ -58,7 +73,9 @@ class Logic :
         :param key: event.key
         :return: None
         '''
-        self.gameManager.doKeyDown(key)
+        self.menus[self.currentMenu].doKeyDown(self, key)
+        if self.currentMenu == self.gameplayUI :
+            self.gameManager.doKeyDown(key)
 
     def doKeyUp(self, key) :
         '''
@@ -66,7 +83,9 @@ class Logic :
         :param key: event.key
         :return: None
         '''
-        self.gameManager.doKeyUp(key)
+        self.menus[self.currentMenu].doKeyUp(self, key)
+        if self.currentMenu == self.gameplayUI :
+            self.gameManager.doKeyUp(key)
 
     def doMouseDown(self, mouse) :
         '''
@@ -74,14 +93,22 @@ class Logic :
         :param mouse: pygame.mouse.get_pressed()
         :return: None
         '''
+        self.menus[self.currentMenu].doMouseDown(self, mouse, self.mouse)
 
     def doMouseUp(self) :
         '''
         Process a mouse button being released.
         :return: None
         '''
+        self.menus[self.currentMenu].doMouseUp(self)
 
-
+    def setMenu(self, menuID) :
+        '''
+        Set the current menu.
+        :param menuID: Menu ID.
+        :return: None
+        '''
+        self.currentMenu = menuID
 
 class Screen :
 

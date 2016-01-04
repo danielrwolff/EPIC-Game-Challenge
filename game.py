@@ -2,8 +2,9 @@
 # Daniel Wolff
 # 11/11/2015
 
-import os, random
-from tools import *
+from os import path
+from random import randint
+from tools import Camera, Physics, Vector
 
 class GameManager :
 
@@ -143,62 +144,62 @@ class GameManager :
         leftAnim = []
         rightAnim = []
 
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Stationary_Right.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Stationary_Right.png")).convert_alpha())
         for i in range(1, 7) :
-            rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Walk_Right" + str(i) + ".png")).convert_alpha())
+            rightAnim.append(pygame.image.load(path.join("data", "Right", "Walk_Right" + str(i) + ".png")).convert_alpha())
 
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right2.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right3.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Fall_Right.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Fall_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Fall_Right3.png")).convert_alpha())
 
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Crouch_Right1.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Crouch_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Crouch_Right1.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Crouch_Right2.png")).convert_alpha())
 
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right1.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right2.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right3.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right4.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right5.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right6.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Roll_Right1.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Roll_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Roll_Right3.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Roll_Right4.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Roll_Right5.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Roll_Right6.png")).convert_alpha())
 
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Punch_Right1.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Punch_Right2.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "CrouchPunch_Right1.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "CrouchPunch_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Punch_Right1.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Punch_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "CrouchPunch_Right1.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "CrouchPunch_Right2.png")).convert_alpha())
 
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Kick_Right1.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Kick_Right2.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Launch_Right.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Lay_Right.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Kick_Right1.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Kick_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Launch_Right.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Lay_Right.png")).convert_alpha())
 
 
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Stationary_Left.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Stationary_Left.png")).convert_alpha())
         for i in range(1, 7) :
-            leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Walk_Left" + str(i) + ".png")).convert_alpha())
+            leftAnim.append(pygame.image.load(path.join("data", "Left", "Walk_Left" + str(i) + ".png")).convert_alpha())
 
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left2.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left3.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Fall_Left.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Fall_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Fall_Left3.png")).convert_alpha())
 
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Crouch_Left1.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Crouch_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Crouch_Left1.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Crouch_Left2.png")).convert_alpha())
 
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left1.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left2.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left3.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left4.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left5.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left6.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Roll_Left1.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Roll_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Roll_Left3.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Roll_Left4.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Roll_Left5.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Roll_Left6.png")).convert_alpha())
 
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Punch_Left1.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Punch_Left2.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "CrouchPunch_Left1.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "CrouchPunch_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Punch_Left1.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Punch_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "CrouchPunch_Left1.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "CrouchPunch_Left2.png")).convert_alpha())
 
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Kick_Left1.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Kick_Left2.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Launch_Left.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Lay_Left.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Kick_Left1.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Kick_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Launch_Left.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Lay_Left.png")).convert_alpha())
 
 
         return [leftAnim, rightAnim]
@@ -674,13 +675,13 @@ class Sprite (GameObject) :
             return
 
         if self.crouched and self.checkAttackCollisions(a, self.hitBoxes[1][0]) :
-            self.applyDamage(random.randint(15,20), a[3])
+            self.applyDamage(randint(15,20), a[3])
 
         elif (not self.crouched) and self.checkAttackCollisions(a, self.hitBoxes[0][0]) :
-            self.applyDamage(random.randint(15,20), a[3])
+            self.applyDamage(randint(15,20), a[3])
 
         elif (not self.crouched) and self.checkAttackCollisions(a, self.hitBoxes[0][1]) :
-            self.applyDamage(random.randint(7,12), a[3])
+            self.applyDamage(randint(7,12), a[3])
 
     def applyDamage(self, dam, di) :
         '''
@@ -698,9 +699,9 @@ class Sprite (GameObject) :
         print self.damage
 
         if self.damage <= 50 :
-            self.vel = Vector(self.defaultLaunchSpeed*di, random.randint(-30,-20)*di)
+            self.vel = Vector(self.defaultLaunchSpeed*di, randint(-30,-20)*di)
         else :
-            self.vel = Vector(int(self.defaultLaunchSpeed*(self.damage/50.0))*di, random.randint(-45,-30)*di)
+            self.vel = Vector(int(self.defaultLaunchSpeed*(self.damage/50.0))*di, randint(-45,-30)*di)
 
     def checkAttackCollisions(self, a, hitbox) :
         '''

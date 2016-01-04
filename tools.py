@@ -181,3 +181,97 @@ class Vector :
         :return: None
         '''
         self.magY = y
+
+
+
+class Button :
+
+    def __init__(self, pygame, x, y, w, h, t, fill, outline, text = None, textFont = None, textSize = None, textColour = None) :
+        '''
+        Initialize button.
+        :param pygame: PyGame instance.
+        :param x: x position.
+        :param y: y position.
+        :param w: Width.
+        :param h: Height.
+        :param t: Target menu ID.
+        :param fill: Fill colour.
+        :param outline: Outline colour.
+        :param text: Text object.
+        :param textFont: Text font.
+        :param textSize: Text size.
+        :param textColour: Text colour.
+        :return: None
+        '''
+
+        self.xPos = x
+        self.yPos = y
+        self.width = w
+        self.height = h
+        self.targetID = t
+        self.fill = fill
+        self.outline = outline
+        if text is not None :
+            self.text = Text(pygame, text, x + 10, y + h - 10, textFont, textSize, textColour)
+
+    def draw(self, screen, pygame) :
+        '''
+        Draw the button.
+        :param screen: Screen to draw the objects on.
+        :param pygame: PyGame instance.
+        :return: None
+        '''
+        pygame.draw.rect(screen, self.fill, (self.xPos, self.yPos, self.width, self.height), self.outline)
+        self.text.draw(screen, pygame)
+
+    def isClicked(self, mx, my) :
+        '''
+        Check to see if the button has been clicked.
+        :param mx: Mouse x position.
+        :param my: Mouse y position.
+        :return: Boolean
+        '''
+        if self.xPos <= mx <= self.xPos + self.width and self.yPos <= my <= self.yPos + self.height :
+            return True
+        return False
+
+    def getTargetID(self) :
+        return self.targetID
+
+class Text :
+
+    def __init__(self, pygame, text, x, y, font, size, col) :
+        '''
+        Initialize text.
+        :param text: Text string.
+        :param x: x position.
+        :param y: y position.
+        :param font: Text font name (string).
+        :param size: Text font size.
+        :param col: Text colour.
+        :return: None
+        '''
+        self.text = text
+        self.xPos = x
+        self.yPos = y
+        self.fontLoc = (pygame.font.match_font(font))
+        self.font = pygame.font.Font(self.fontLoc,size)
+        self.colour = col
+
+    def draw(self, screen, pygame) :
+        '''
+        Draw the text to a surface.
+        :param screen: Surface to draw to.
+        :param pygame: Pygame instance.
+        :return: None
+        '''
+        rend = self.font.render(self.text, True, self.colour)
+        screen.blit(rend,[self.xPos,self.yPos])
+
+    def setText(self, text) :
+        '''
+        Set the text.
+        :param text: Text string.
+        :return: None
+        '''
+        self.text = text
