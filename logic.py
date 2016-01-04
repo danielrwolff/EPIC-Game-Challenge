@@ -17,6 +17,12 @@ class Logic :
         :return: None
         '''
 
+        self.BLACK = (0,0,0)
+        self.DARKGREY = (100,100,100)
+        self.GREY = (150,150,150)
+        self.LIGHTGREY = (200,200,200)
+        self.WHITE = (255,255,255)
+
         pygame.init()
 
         self.window = Screen(_SIZE, _CAPTION)
@@ -25,13 +31,34 @@ class Logic :
         self.gameManager = GameManager(pygame, _SIZE)
         self.audioManager = AudioManager()
 
-        self.menus = [  UI_SplashScreen(pygame, 0, 1, pygame.image.load(path.join("data", "Splash1.png")).convert()),
-                        UI_Menu(pygame, 1,[]),
-                        UI_Menu(pygame, 2,[]),
-                        UI_Gameplay(pygame, 3,[])           ]
+        self.menus = [  UI_SplashScreen(pygame, 0, 1,
+                                [
+                                    ['B', self.BLACK],
+                                    ['T', ("Thanks for trying out my game!", 210, _SIZE[1]/2 - 50, 'impact', 30, self.WHITE)],
+                                    ['T', ("If you find any bugs, please let me know!", 150, _SIZE[1]/2 - 20, 'impact', 30, self.WHITE)],
+                                    ['T', ("(Click anywhere to begin)", 290, _SIZE[1]/2 + 50, 'impact', 20, self.WHITE)],
+
+                                ]),
+                        UI_Menu(pygame, 1,
+                                [   ((_SIZE[0]/4)*3 - 100, 50, 220, 50, 4, self.GREY, self.DARKGREY, "PLAY", "impact", 30, self.WHITE),
+                                    ((_SIZE[0]/4)*3 - 100, 110, 220, 50, 2, self.GREY, self.DARKGREY, "CONTROLS", "impact", 30, self.WHITE),
+                                    ((_SIZE[0]/4)*3 - 100, 170, 220, 50, 3, self.GREY, self.DARKGREY, "OPTIONS", "impact", 30, self.WHITE)
+                                ],
+                                [   ['I', pygame.image.load(path.join("data", "Splash1.png")).convert(), (0,0)],
+                                    ['T', ("SUPER", 20, -20, 'impact', 150, self.WHITE)],
+                                    ['T', ("SMASH", 20, 120, 'impact', 150, self.WHITE)],
+                                    ['T', ("STICKS", 20, 260, 'impact', 150, self.WHITE)],
+                                    ['T', ("BRAWL", 20, 400, 'impact', 150, self.WHITE)],
+                                ]),
+                        UI_SplashScreen(pygame, 2, 1,
+                                [
+
+                                ]),
+                        UI_Menu(pygame, 3, [], []),
+                        UI_Gameplay(pygame, 4, [], [])           ]
 
         self.currentMenu = 0
-        self.gameplayUI = 3
+        self.gameplayUI = 4
         self.mouse = (0, 0)
 
     def run(self) :
@@ -95,12 +122,13 @@ class Logic :
         '''
         self.menus[self.currentMenu].doMouseDown(self, mouse, self.mouse)
 
-    def doMouseUp(self) :
+    def doMouseUp(self, mouse) :
         '''
         Process a mouse button being released.
+        :param mouse: pygame.mouse.get_pressed()
         :return: None
         '''
-        self.menus[self.currentMenu].doMouseUp(self)
+        self.menus[self.currentMenu].doMouseUp(self, mouse, self.mouse)
 
     def setMenu(self, menuID) :
         '''
@@ -181,7 +209,7 @@ class EventHandler :
             elif event.type == pygame.MOUSEBUTTONDOWN :
                 env.doMouseDown(pygame.mouse.get_pressed())
             elif event.type == pygame.MOUSEBUTTONUP :
-                env.doMouseUp()
+                env.doMouseUp(pygame.mouse.get_pressed())
 
         return True
 

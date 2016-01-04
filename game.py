@@ -72,8 +72,13 @@ class GameManager :
         for i in self.environment :
             i.draw(screen, pygame, self.camera)
 
-        self.player1.draw(screen, pygame, self.camera)
-        self.player2.draw(screen, pygame, self.camera)
+        if self.player1.getYPos() < self.player2.getYPos() :
+            self.player1.draw(screen, pygame, self.camera)
+            self.player2.draw(screen, pygame, self.camera)
+        else :
+            self.player2.draw(screen, pygame, self.camera)
+            self.player1.draw(screen, pygame, self.camera)
+
 
     def doKeyDown(self, key) :
         '''

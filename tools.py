@@ -212,7 +212,7 @@ class Button :
         self.fill = fill
         self.outline = outline
         if text is not None :
-            self.text = Text(pygame, text, x + 10, y + h - 10, textFont, textSize, textColour)
+            self.text = Text(pygame, text, x + 10, y + h/2.0 - (textSize+5)/2.0, textFont, textSize, textColour)
 
     def draw(self, screen, pygame) :
         '''
@@ -221,7 +221,8 @@ class Button :
         :param pygame: PyGame instance.
         :return: None
         '''
-        pygame.draw.rect(screen, self.fill, (self.xPos, self.yPos, self.width, self.height), self.outline)
+        pygame.draw.rect(screen, self.fill, (self.xPos, self.yPos, self.width, self.height))
+        pygame.draw.rect(screen, self.outline, (self.xPos, self.yPos, self.width, self.height), 1)
         self.text.draw(screen, pygame)
 
     def isClicked(self, mx, my) :
