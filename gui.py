@@ -6,17 +6,19 @@ from tools import Button, Text
 
 class UserInterface :
 
-    def __init__(self, pygame, menuID, buttons, decor) :
+    def __init__(self, pygame, menuID, bg, buttons, decor) :
         '''
         Initialize UI object.
         :param pygame: PyGame instance.
         :param menuID: (Int) UI ID.
+        :param bg: Background colour.
         :param buttons: List of button data (NOT button objects).
         :param decor: List of decoration data.
         :return: None
         '''
 
         self.id = menuID
+        self.bg = bg
         self.buttons = []
         for i in buttons :
             self.buttons.append(Button(pygame, i[0],i[1],i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
@@ -27,8 +29,9 @@ class UserInterface :
                 self.decor.append((i[1], i[2]))
             elif i[0] == 'T' :
                 self.decor.append(Text(pygame, i[1][0],i[1][1],i[1][2],i[1][3],i[1][4],i[1][5]))
-            elif i[0] == 'B' :
-                self.decor.append(i[1])
+            elif i[0] == 'R' or i[0] == 'C' :
+                self.decor.append(i)
+
 
 
 
@@ -51,7 +54,10 @@ class UserInterface :
             elif isinstance(i[0], pygame.Surface) :
                 screen.blit(i[0], i[1])
             else :
-                screen.fill(i)
+                if i[0] == 'R' :
+                    pygame.draw.rect(screen, i[1][0], (i[1][1],i[1][2],i[1][3],i[1][4]))
+                elif i[0] == 'C' :
+                    pygame.draw.circle(screen, i[1][0], i[1][1], i[1][2])
 
         for i in self.buttons :
             i.draw(screen, pygame)
@@ -90,34 +96,39 @@ class UserInterface :
         :return: None
         '''
 
+    def getBG(self) :
+        return self.bg
+
 
 
 class UI_Gameplay (UserInterface) :
 
-    def __init__(self, pygame, menuID, buttons, decor) :
+    def __init__(self, pygame, menuID, bg, buttons, decor) :
         '''
         Initialize UI object.
         :param pygame: PyGame instance.
         :param menuID: (Int) UI ID.
+        :param bg: Background colour.
         :param buttons: List of button data (NOT button objects).
         :param decor: List of decoration data.
         :return: None
         '''
-        UserInterface.__init__(self, pygame, menuID, buttons, decor)
+        UserInterface.__init__(self, pygame, menuID, bg, buttons, decor)
 
 
 class UI_Menu (UserInterface) :
 
-    def __init__(self, pygame, menuID, buttons, decor) :
+    def __init__(self, pygame, menuID, bg, buttons, decor) :
         '''
         Initialize UI object.
         :param pygame: PyGame instance.
         :param menuID: (Int) UI ID.
+        :param bg: Background colour.
         :param buttons: List of button data (NOT button objects).
         :param decor: List of decoration data.
         :return: None
         '''
-        UserInterface.__init__(self, pygame, menuID, buttons, decor)
+        UserInterface.__init__(self, pygame, menuID, bg, buttons, decor)
 
     def doMouseUp(self, env, mouse, pos) :
         '''
@@ -136,16 +147,17 @@ class UI_Menu (UserInterface) :
 
 class UI_SplashScreen(UserInterface) :
 
-    def __init__(self, pygame, menuID, targetID, decor) :
+    def __init__(self, pygame, menuID, targetID, bg, decor) :
         '''
         Initialize UI object.
         :param pygame: PyGame instance.
         :param menuID: (Int) UI ID.
+        :param bg: Background colour.
         :param targetID: Target menu ID.
         :param decor: List of decoration data.
         :return: None
         '''
-        UserInterface.__init__(self, pygame, menuID, [], decor)
+        UserInterface.__init__(self, pygame, menuID, bg, [], decor)
         self.targetID = targetID
 
 
@@ -157,4 +169,6 @@ class UI_SplashScreen(UserInterface) :
         :param pos: (Tuple) -> mouse (x,y)
         :return: None
         '''
+        if mouse[1] == 1 :
+            return
         env.setMenu(self.targetID)

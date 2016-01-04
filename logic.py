@@ -18,44 +18,69 @@ class Logic :
         '''
 
         self.BLACK = (0,0,0)
+        self.DARKERGREY = (75,75,75)
         self.DARKGREY = (100,100,100)
         self.GREY = (150,150,150)
         self.LIGHTGREY = (200,200,200)
         self.WHITE = (255,255,255)
+        self.BLUE = (0,0,255)
+        self.RED = (255,0,0)
 
         pygame.init()
 
         self.window = Screen(_SIZE, _CAPTION)
         self.events = EventHandler()
 
-        self.gameManager = GameManager(pygame, _SIZE)
+        self.gameManager = GameManager(pygame, _SIZE, self.GREY, self.DARKGREY, self.BLUE, self.RED)
         self.audioManager = AudioManager()
 
-        self.menus = [  UI_SplashScreen(pygame, 0, 1,
+        self.menus = [  UI_SplashScreen(pygame, 0, 1, self.BLACK,
                                 [
-                                    ['B', self.BLACK],
                                     ['T', ("Thanks for trying out my game!", 210, _SIZE[1]/2 - 50, 'impact', 30, self.WHITE)],
                                     ['T', ("If you find any bugs, please let me know!", 150, _SIZE[1]/2 - 20, 'impact', 30, self.WHITE)],
                                     ['T', ("(Click anywhere to begin)", 290, _SIZE[1]/2 + 50, 'impact', 20, self.WHITE)],
-
                                 ]),
-                        UI_Menu(pygame, 1,
-                                [   ((_SIZE[0]/4)*3 - 100, 50, 220, 50, 4, self.GREY, self.DARKGREY, "PLAY", "impact", 30, self.WHITE),
+                        UI_Menu(pygame, 1, self.LIGHTGREY,
+                                [
+                                    ((_SIZE[0]/4)*3 - 100, 50, 220, 50, 4, self.GREY, self.DARKGREY, "PLAY", "impact", 30, self.WHITE),
                                     ((_SIZE[0]/4)*3 - 100, 110, 220, 50, 2, self.GREY, self.DARKGREY, "CONTROLS", "impact", 30, self.WHITE),
                                     ((_SIZE[0]/4)*3 - 100, 170, 220, 50, 3, self.GREY, self.DARKGREY, "OPTIONS", "impact", 30, self.WHITE)
                                 ],
-                                [   ['I', pygame.image.load(path.join("data", "Splash1.png")).convert(), (0,0)],
+                                [
+                                    ['I', pygame.image.load(path.join("data", "Splash1.png")).convert(), (0,0)],
                                     ['T', ("SUPER", 20, -20, 'impact', 150, self.WHITE)],
                                     ['T', ("SMASH", 20, 120, 'impact', 150, self.WHITE)],
                                     ['T', ("STICKS", 20, 260, 'impact', 150, self.WHITE)],
                                     ['T', ("BRAWL", 20, 400, 'impact', 150, self.WHITE)],
                                 ]),
-                        UI_SplashScreen(pygame, 2, 1,
+                        UI_Menu(pygame, 2, self.LIGHTGREY,
                                 [
-
+                                    (_SIZE[0]/2 - 100, _SIZE[1]/1.25, 220, 50, 1, self.GREY, self.DARKGREY, "BACK", "impact", 30, self.WHITE),
+                                ],
+                                [
+                                    ['R', (self.DARKGREY, 0, 0, _SIZE[0], 105)],
+                                    ['R', (self.GREY, 0, 0, _SIZE[0], 100)],
+                                    ['T', ("CONTROLS", 20, -10, 'impact', 100, self.WHITE)],
                                 ]),
-                        UI_Menu(pygame, 3, [], []),
-                        UI_Gameplay(pygame, 4, [], [])           ]
+                        UI_Menu(pygame, 3, self.LIGHTGREY,
+                                [
+                                    (_SIZE[0]/2 - 100, _SIZE[1]/1.25, 220, 50, 1, self.GREY, self.DARKGREY, "BACK", "impact", 30, self.WHITE),
+                                ],
+                                [
+                                    ['R', (self.DARKGREY, 0, 0, _SIZE[0], 105)],
+                                    ['R', (self.GREY, 0, 0, _SIZE[0], 100)],
+                                    ['T', ("OPTIONS", 20, -10, 'impact', 100, self.WHITE)],
+                                    ['T', ("This page is under construction.", 210, _SIZE[1]/2 - 50, 'impact', 30, self.GREY)]
+                                ]),
+                        UI_Gameplay(pygame, 4, self.LIGHTGREY,
+                                    [
+
+                                    ],
+                                    [
+                                        ['R', (self.DARKERGREY, 0, _SIZE[1] - 55, _SIZE[0], 55)],
+                                        ['R', (self.DARKGREY, 0, _SIZE[1] - 50, _SIZE[0], 50)],
+                                    ])
+                    ]
 
         self.currentMenu = 0
         self.gameplayUI = 4
@@ -73,13 +98,14 @@ class Logic :
                 # Update objects
                 self.mouse = self.events.getMouse()
 
-                ############# UNNECESSARY?
                 if self.currentMenu == self.gameplayUI :
                     self.gameManager.update()
+
+                ############# UNNECESSARY?
                 self.menus[self.currentMenu].update()
 
                 # Refresh window
-                self.window.refresh()
+                self.window.refresh(self.menus[self.currentMenu].getBG())
 
                 # Draw objects
                 if self.currentMenu == self.gameplayUI :
@@ -152,12 +178,13 @@ class Screen :
         self.SIZE = _SIZE
         self.CAPTION = _CAPTION
 
-    def refresh(self) :
+    def refresh(self, col) :
         '''
         Clear the pygame screen and all surfaces.
+        :param col: Background colour.
         :return: None
         '''
-        self.screen.fill((230, 230, 230))
+        self.screen.fill(col)
 
     def flip(self) :
         '''

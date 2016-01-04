@@ -269,6 +269,16 @@ class Text :
         rend = self.font.render(self.text, True, self.colour)
         screen.blit(rend,[self.xPos,self.yPos])
 
+    def setPos(self, x, y) :
+        '''
+        Set the position of the text.
+        :param x: x position.
+        :param y: y position.
+        :return: None
+        '''
+        self.xPos = x
+        self.yPos = y
+
     def setText(self, text) :
         '''
         Set the text.

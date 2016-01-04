@@ -4,15 +4,19 @@
 
 from os import path
 from random import randint
-from tools import Camera, Physics, Vector
+from tools import Camera, Physics, Vector, Text
 
 class GameManager :
 
-    def __init__(self, pygame, SIZE) :
+    def __init__(self, pygame, SIZE, envFill, envOutline, p1Col, p2Col) :
         '''
         Initialize the game manager.
         :param pygame: PyGame instance.
         :param SIZE: Size of screen.
+        :param envFill: Environment fill colour.
+        :param envOutline: Environment outline colour.
+        :param p1Col: Player 1 colour.
+        :param p2Col: Player 2 colour.
         :return: None
         '''
 
@@ -27,11 +31,14 @@ class GameManager :
         self.P2DOWN = pygame.K_s
         self.P2LEFT = pygame.K_a
         self.P2RIGHT = pygame.K_d
-        self.P2PUNCH = pygame.K_LSHIFT
-        self.P2KICK = pygame.K_CAPSLOCK
+        self.P2PUNCH = pygame.K_1
+        self.P2KICK = pygame.K_2
 
         self.WIDTH = SIZE[0]
         self.HEIGHT = SIZE[1]
+
+        self.envFill = envFill
+        self.envOutline = envOutline
 
         self.sprites = self.getImages(pygame)
 
@@ -39,13 +46,13 @@ class GameManager :
         self.camera = Camera(0, 0, 1, self.WIDTH, self.HEIGHT, 200, 1, 0.5)
 
         self.environment = []
-        self.environment.append(EnvObject(0, 0, 50, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'L'))
-        self.environment.append(EnvObject(self.WIDTH - 50, 0, 50, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'R'))
-        self.environment.append(EnvObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'B'))
-        self.environment.append(EnvObject(100, self.HEIGHT/2.0, self.WIDTH/2.0, 15, (200, 200, 200), (180, 180, 180)))
+        self.environment.append(EnvObject(0, 0, 50, self.HEIGHT, self.envFill, self.envOutline, 'L'))
+        self.environment.append(EnvObject(self.WIDTH - 50, 0, 50, self.HEIGHT, self.envFill, self.envOutline, 'R'))
+        self.environment.append(EnvObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, self.envFill, self.envOutline, 'B'))
+        self.environment.append(EnvObject(100, self.HEIGHT/2.0, self.WIDTH/2.0, 15, self.envFill, self.envOutline))
 
-        self.player1 = Sprite(pygame, self.sprites, 100, 200, 50, 100, (0, 0, 0))
-        self.player2 = Sprite(pygame, self.sprites, 300, 200, 50, 100, (255, 0, 0))
+        self.player1 = Sprite(pygame, self.sprites, 100, 200, 50, 100, Text(pygame, "Player 1", 100, 200, 'impact', 20, p1Col))
+        self.player2 = Sprite(pygame, self.sprites, 300, 200, 50, 100, Text(pygame, "Player 2", 300, 200, 'impact', 20, p2Col))
 
         self.attacks = [None,None]
 
@@ -248,19 +255,19 @@ class GameObject :
 
 class Sprite (GameObject) :
 
-    def __init__(self, pygame, anim, xPos, yPos, width, height, col) :
+    def __init__(self, pygame, anim, xPos, yPos, width, height, tag) :
         '''
         Initialize the sprite.
         :param anim: Animation images.
         :param xPos: X position.
         :param yPos: Y position.
-        :param col: Sprite colour.
+        :param tag: Sprite text tag (Text Object).
         :return: None
         '''
 
         GameObject.__init__(self, xPos, yPos, width, height)
 
-        self.colour = col
+        self.tag = tag
         self.animContent = anim
 
         self.hitBoxes = [   [(10,0,30,30), (15,30,20,70)],
@@ -350,6 +357,7 @@ class Sprite (GameObject) :
             self.xPos += self.vel.getMagX()
 
         self.yPos += self.vel.getMagY()
+        self.tag.setPos(self.xPos, self.yPos)
         ###
 
         ### COLLISIONS
@@ -499,9 +507,9 @@ class Sprite (GameObject) :
 
         ### TEMP
 
-        for i in self.hitBoxes[0] :
-            pos = camera.transToGameScreen(self.xPos + i[0], self.yPos + i[1])
-            zoom = camera.zoomToGameScreen(int(i[2]), int(i[3]))
+        #for i in self.hitBoxes[0] :
+        #    pos = camera.transToGameScreen(self.xPos + i[0], self.yPos + i[1])
+        #    zoom = camera.zoomToGameScreen(int(i[2]), int(i[3]))
 
             #pygame.draw.rect(screen, (255,(i[1]*2),0), (pos[0], pos[1], zoom[0], zoom[1]))
 
@@ -520,6 +528,8 @@ class Sprite (GameObject) :
             screen.blit(pygame.transform.smoothscale(self.animContent[1][self.animStage],
                                                         camera.zoomToGameScreen(w, int(self.height))),
                                                         camera.transToGameScreen(self.xPos, self.yPos))
+
+        self.tag.draw(screen, pygame)
 
     def goDirection(self, direction) :
         '''
