@@ -35,9 +35,10 @@ class UserInterface :
 
 
 
-    def update(self) :
+    def update(self, logic) :
         '''
         Update the user interface.
+        :param logic : Logic instance.
         :return: None
         '''
 
@@ -95,6 +96,10 @@ class UserInterface :
         :param pos: (Tuple) -> mouse (x,y)
         :return: None
         '''
+        for button in self.buttons :
+            if button.isClicked(pos[0], pos[1]) :
+                env.setMenu(button.getTargetID())
+                return
 
     def getBG(self) :
         return self.bg
@@ -103,7 +108,7 @@ class UserInterface :
 
 class UI_Gameplay (UserInterface) :
 
-    def __init__(self, pygame, menuID, bg, buttons, decor) :
+    def __init__(self, pygame, menuID, bg, buttons, decor, screenWidth, screenHeight) :
         '''
         Initialize UI object.
         :param pygame: PyGame instance.
@@ -111,9 +116,62 @@ class UI_Gameplay (UserInterface) :
         :param bg: Background colour.
         :param buttons: List of button data (NOT button objects).
         :param decor: List of decoration data.
+        :param screenWidth: Screen width.
+        :param screenHeight: Screen height.
         :return: None
         '''
         UserInterface.__init__(self, pygame, menuID, bg, buttons, decor)
+
+        self.WHITE = (255,255,255)
+        self.YELLOW = (255,255,0)
+        self.ORANGE = (255,155,0)
+        self.RED = (255,0,0)
+
+        self.p1Damage = Text(pygame, "", 190, screenHeight - 50, 'impact', 30, self.WHITE)
+        self.p2Damage = Text(pygame, "", screenWidth - 230, screenHeight - 50, 'impact', 30, self.WHITE)
+
+    def update(self, logic):
+        '''
+        Update the user interface.
+        :param logic : Logic instance.
+        :return: None
+        '''
+        p1 = logic.getPlayerDamage(1)
+        p2 = logic.getPlayerDamage(2)
+
+        if p1 > 250 :
+            self.p1Damage.setColour(self.RED)
+        elif p1 > 175 :
+            self.p1Damage.setColour(self.ORANGE)
+        elif p1 > 100 :
+            self.p1Damage.setColour(self.YELLOW)
+        else :
+            self.p1Damage.setColour(self.WHITE)
+
+        if p2 > 250 :
+            self.p2Damage.setColour(self.RED)
+        elif p2 > 175 :
+            self.p2Damage.setColour(self.ORANGE)
+        elif p2 > 100 :
+            self.p2Damage.setColour(self.YELLOW)
+        else :
+            self.p2Damage.setColour(self.WHITE)
+
+        self.p1Damage.setText(str(p1) + "%")
+        self.p2Damage.setText(str(p2) + "%")
+
+    def draw(self, screen, pygame) :
+        '''
+        Draw the user interface.
+        :param screen: Surface to draw to.
+        :param pygame: Pygame instance.
+        :return: None
+        '''
+        UserInterface.draw(self, screen, pygame)
+
+        self.p1Damage.draw(screen, pygame)
+        self.p2Damage.draw(screen, pygame)
+
 
 
 class UI_Menu (UserInterface) :
@@ -130,18 +188,7 @@ class UI_Menu (UserInterface) :
         '''
         UserInterface.__init__(self, pygame, menuID, bg, buttons, decor)
 
-    def doMouseUp(self, env, mouse, pos) :
-        '''
-        Process a mouse button release.
-        :param env: logic instance.
-        :param mouse: pygame.mouse.get_pressed()
-        :param pos: (Tuple) -> mouse (x,y)
-        :return: None
-        '''
-        for button in self.buttons :
-            if button.isClicked(pos[0], pos[1]) :
-                env.setMenu(button.getTargetID())
-                return
+
 
 
 

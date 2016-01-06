@@ -267,7 +267,18 @@ class Text :
         :return: None
         '''
         rend = self.font.render(self.text, True, self.colour)
-        screen.blit(rend,[self.xPos,self.yPos])
+        screen.blit(rend,(self.xPos, self.yPos))
+
+    def drawToCamera(self, screen, pygame, camera) :
+        '''
+        Draw the text to a surface through the camera.
+        :param screen: Surface to draw to.
+        :param pygame: Pygame instance.
+        :param camera: Camera instance.
+        :return: None
+        '''
+        rend = self.font.render(self.text, True, self.colour)
+        screen.blit(rend,camera.transToGameScreen(self.xPos, self.yPos))
 
     def setPos(self, x, y) :
         '''
@@ -286,3 +297,11 @@ class Text :
         :return: None
         '''
         self.text = text
+
+    def setColour(self, col) :
+        '''
+        Set the colour of the text.
+        :param col: Colour.
+        :return: None
+        '''
+        self.colour = col

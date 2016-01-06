@@ -31,7 +31,7 @@ class Logic :
         self.window = Screen(_SIZE, _CAPTION)
         self.events = EventHandler()
 
-        self.gameManager = GameManager(pygame, _SIZE, self.GREY, self.DARKGREY, self.BLUE, self.RED)
+        self.gameManager = GameManager(pygame, _SIZE, self.GREY, self.DARKGREY, self.RED, self.BLUE)
         self.audioManager = AudioManager()
 
         self.menus = [  UI_SplashScreen(pygame, 0, 1, self.BLACK,
@@ -74,17 +74,45 @@ class Logic :
                                 ]),
                         UI_Gameplay(pygame, 4, self.LIGHTGREY,
                                     [
-
+                                        ( 5, 5, 50, 20, 1, self.GREY, self.DARKGREY, "EXIT", "impact", 15, self.WHITE)
                                     ],
                                     [
                                         ['R', (self.DARKERGREY, 0, _SIZE[1] - 55, _SIZE[0], 55)],
                                         ['R', (self.DARKGREY, 0, _SIZE[1] - 50, _SIZE[0], 50)],
-                                    ])
+
+                                        ['R', (self.DARKERGREY, 75, _SIZE[1] - 75, 225, 75)],
+                                        ['R', (self.GREY, 75, _SIZE[1] - 70, 220, 70)],
+                                        ['C', (self.DARKERGREY, (75, _SIZE[1] - 75), 75)],
+                                        ['C', (self.GREY, (75, _SIZE[1] - 75), 72)],
+                                        ['C', (self.RED, (75, _SIZE[1] - 75), 60)],
+                                        ['C', (self.GREY, (75, _SIZE[1] - 75), 55)],
+
+                                        ['R', (self.DARKERGREY, _SIZE[0] - 75, _SIZE[1] - 75, -225, 75)],
+                                        ['R', (self.GREY, _SIZE[0] - 75, _SIZE[1] - 70, -220, 70)],
+                                        ['C', (self.DARKERGREY, (_SIZE[0] - 75, _SIZE[1] - 75), 75)],
+                                        ['C', (self.GREY, (_SIZE[0] - 75, _SIZE[1] - 75), 72)],
+                                        ['C', (self.BLUE, (_SIZE[0] - 75, _SIZE[1] - 75), 60)],
+                                        ['C', (self.GREY, (_SIZE[0] - 75, _SIZE[1] - 75), 55)]
+                                    ],
+                                    _SIZE[0], _SIZE[1]),
+                        UI_SplashScreen(pygame, 5, 1, self.GREY,
+                                [
+                                    ['T', ("Player 1 wins!", 210, _SIZE[1]/2 - 50, 'impact', 30, self.WHITE)],
+                                    ['T', ("(Click anywhere to continue)", 285, _SIZE[1]/2 + 50, 'impact', 20, self.WHITE)],
+                                ]),
+                        UI_SplashScreen(pygame, 6, 1, self.GREY,
+                                [
+                                    ['T', ("Player 2 wins!", 210, _SIZE[1]/2 - 50, 'impact', 30, self.WHITE)],
+                                    ['T', ("(Click anywhere to continue)", 285, _SIZE[1]/2 + 50, 'impact', 20, self.WHITE)],
+                                ])
                     ]
 
         self.currentMenu = 0
         self.gameplayUI = 4
         self.mouse = (0, 0)
+
+        self.gameOver = False, -1
+        self.endGameCount = 0
 
     def run(self) :
         '''
@@ -98,18 +126,24 @@ class Logic :
                 # Update objects
                 self.mouse = self.events.getMouse()
 
-                if self.currentMenu == self.gameplayUI :
-                    self.gameManager.update()
+                if self.gameOver[0] :
+                    self.endGameCount += 1
+                    if self.endGameCount > 100 :
+                        self.setGameOver(self.gameOver[1])
+                        self.gameOver = False, -1
 
-                ############# UNNECESSARY?
-                self.menus[self.currentMenu].update()
+
+                if self.currentMenu == self.gameplayUI :
+                    self.gameManager.update(self)
 
                 # Refresh window
                 self.window.refresh(self.menus[self.currentMenu].getBG())
 
                 # Draw objects
                 if self.currentMenu == self.gameplayUI :
+                    self.menus[self.currentMenu].update(self)
                     self.window.draw(self.gameManager)
+
                 self.window.draw(self.menus[self.currentMenu])
 
                 # Flip window
@@ -162,7 +196,38 @@ class Logic :
         :param menuID: Menu ID.
         :return: None
         '''
+        if menuID == self.gameplayUI :
+            self.gameManager = GameManager(pygame, self.window.getSize(), self.GREY, self.DARKGREY, self.RED, self.BLUE)
+            self.gameOver = False, -1
+            self.endGameCount = 0
         self.currentMenu = menuID
+
+    def getPlayerDamage(self, p) :
+        '''
+        Get a player's damage.
+        :param p: Player number (1/2)
+        :return: (Int) player damage.
+        '''
+        return self.gameManager.getPlayerDamage(p)
+
+    def declareGameOver(self, winner) :
+        '''
+        Declare the end of the game.
+        :param winner: The winner of the game.
+        :return: None
+        '''
+        self.gameOver = True, winner
+
+    def setGameOver(self, winner) :
+        '''
+        End the game.
+        :param winner: The winner of the game.
+        :return: None
+        '''
+        if winner == 1 :
+            self.currentMenu = 5
+        elif winner == 2:
+            self.currentMenu = 6
 
 class Screen :
 
@@ -208,6 +273,15 @@ class Screen :
         :return: None
         '''
         pygame.quit()
+
+    def getWidth(self) :
+        return self.SIZE[0]
+
+    def getHeight(self) :
+        return self.SIZE[1]
+
+    def getSize(self) :
+        return self.SIZE
 
 
 

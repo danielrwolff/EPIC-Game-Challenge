@@ -51,14 +51,17 @@ class GameManager :
         self.environment.append(EnvObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, self.envFill, self.envOutline, 'B'))
         self.environment.append(EnvObject(100, self.HEIGHT/2.0, self.WIDTH/2.0, 15, self.envFill, self.envOutline))
 
-        self.player1 = Sprite(pygame, self.sprites, 100, 200, 50, 100, Text(pygame, "Player 1", 100, 200, 'impact', 20, p1Col))
-        self.player2 = Sprite(pygame, self.sprites, 300, 200, 50, 100, Text(pygame, "Player 2", 300, 200, 'impact', 20, p2Col))
+        self.player1 = Sprite(pygame, self.sprites, 100, 200, 50, 100,
+                              Text(pygame, "P1", 100, 200, 'impact', 15, p1Col))
+        self.player2 = Sprite(pygame, self.sprites, 300, 200, 50, 100,
+                              Text(pygame, "P2", 300, 200, 'impact', 15, p2Col))
 
         self.attacks = [None,None]
 
-    def update(self) :
+    def update(self, logic) :
         '''
         Update the game manager.
+        :param logic: Logic instance.
         :return: None
         '''
         self.camera.determinePosition(self.player1, self.player2)
@@ -67,6 +70,11 @@ class GameManager :
 
         self.player1.opposingAttacks(self.attacks[1])
         self.player2.opposingAttacks(self.attacks[0])
+
+        if self.getPlayerDamage(1) >= 300 :
+            logic.declareGameOver(2)
+        if self.getPlayerDamage(2) >= 300 :
+            logic.declareGameOver(1)
 
     def draw(self, screen, pygame) :
         '''
@@ -216,6 +224,18 @@ class GameManager :
 
         return [leftAnim, rightAnim]
 
+    def getPlayerDamage(self, p) :
+        '''
+        Get a player's damage.
+        :param p: Player number (1/2).
+        :return: (Int) player damage.
+        '''
+        if p == 1 :
+            return self.player1.getDamage()
+        elif p == 2 :
+            return self.player2.getDamage()
+
+
 
 
 class GameObject :
@@ -308,7 +328,7 @@ class Sprite (GameObject) :
         self.jumpSpeed = -15
         self.defaultLaunchSpeed = 10
 
-        self.damage = 0
+        self.damage = 299
 
         self.lastXPos = self.xPos
         self.lastYPos = self.yPos
@@ -357,23 +377,25 @@ class Sprite (GameObject) :
             self.xPos += self.vel.getMagX()
 
         self.yPos += self.vel.getMagY()
-        self.tag.setPos(self.xPos, self.yPos)
+        self.tag.setPos(self.xPos + 17, self.yPos - 20)
         ###
 
         ### COLLISIONS
         self.checkCollisions(objs, self.hitBoxes[int(self.crouched)][int(not self.crouched)])
 
-        if self.grounded and self.action == 3 :
-            if self.currentDir != 0 :
-                self.action = 1
-            else :
+        if self.grounded :
+            if self.action == 3 :
+                if self.currentDir != 0 :
+                    self.action = 1
+                else :
+                    self.action = 0
+            elif self.action == 9 :
                 self.action = 0
-        elif self.grounded and self.action == 9 :
-            self.action = 0
+
             self.handicap = False
-        elif not self.grounded and self.action <= 4 :
-            self.action = 3
-        ###
+        else :
+            if self.action <= 4 :
+                self.action = 3
 
         ### ANIMATIONS
         if self.frameCount >= self.frameDelay :
@@ -529,7 +551,7 @@ class Sprite (GameObject) :
                                                         camera.zoomToGameScreen(w, int(self.height))),
                                                         camera.transToGameScreen(self.xPos, self.yPos))
 
-        self.tag.draw(screen, pygame)
+        self.tag.drawToCamera(screen, pygame, camera)
 
     def goDirection(self, direction) :
         '''
@@ -629,6 +651,10 @@ class Sprite (GameObject) :
         if not self.allowStateChange :
             return
 
+        if self.action == 9 :
+            self.action = 0
+            return
+
         if self.currentDir == 0 :
             self.action = 0
         else :
@@ -667,6 +693,9 @@ class Sprite (GameObject) :
                 self.vel.setMagY(0)
                 self.grounded = True
                 self.allowDoubleJump = True
+
+            elif boundary == 'D' and self.yPos + self.height > i.getYPos() :
+                self.damage = 300
 
             elif boundary == 'NA' :
                 if (i.getXPos() < self.xPos + hitbox[0] + hitbox[2] and
@@ -709,6 +738,7 @@ class Sprite (GameObject) :
         self.damage += dam
         self.handicap = True
         self.action = 9
+        self.crouched = False
         self.currentDir = di
 
         print self.damage
