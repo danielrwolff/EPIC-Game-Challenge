@@ -223,6 +223,9 @@ class Logic :
             self.matchStarted = False
             self.gameOver = False, -1
             self.endGameCount = 0
+            self.audioManager.play('battle')
+        else :
+            self.audioManager.play('menu')
         self.currentMenu = menuID
 
     def getPlayerDamage(self, p) :
@@ -371,9 +374,21 @@ class AudioManager :
         self.musicVolume = [100, 100]
         self.sfxVolume = [100, 100]
         self.fadeRate = 1
+        self.currentSong = 'battle'
 
-        self.songs = [  pygame.mixer.Sound("data/hotpursuit.wav"),
-                        pygame.mixer.Sound("data/adventuretime.wav")    ]
+        self.songs = {  "menu" : pygame.mixer.Sound("data/menu.wav"),
+                        "battle" : pygame.mixer.Sound("data/battle.wav")    }
+
+    def play(self, song) :
+        '''
+        Play the specified song.
+        :param song: String -> song name.
+        :return: None
+        '''
+        if song != self.currentSong :
+            self.songs[self.currentSong].stop()
+            self.songs[song].play(-1)
+            self.currentSong = song
 
     def update(self) :
         '''
