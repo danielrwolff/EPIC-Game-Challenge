@@ -58,16 +58,31 @@ class Logic :
                                 ]),
                         UI_Menu(pygame, 2, self.GREY200,
                                 [
-                                    (_SIZE[0] / 2 - 100, _SIZE[1] / 1.25, 220, 50, 1, self.GREY150, self.GREY125, self.GREY100, "BACK", "impact", 30, self.WHITE),
+                                    (10, _SIZE[1] - 60, 220, 50, 1, self.GREY150, self.GREY125, self.GREY100, "BACK", "impact", 30, self.WHITE),
                                 ],
                                 [
                                     ['R', (self.GREY100, 0, 0, _SIZE[0], 105)],
+                                    ['R', (self.GREY100, _SIZE[0]/2 - 2, 0, 4, _SIZE[1])],
                                     ['R', (self.GREY150, 0, 0, _SIZE[0], 100)],
                                     ['T', ("CONTROLS", 20, -10, 'impact', 100, self.WHITE)],
+
+                                    ['T', ("Player 1", _SIZE[0]/4 - 85, 120, 'impact', 50, self.WHITE)],
+                                    ['T', ("Move left/right:   A/D", _SIZE[0]/4 - 120, 200, 'impact', 20, self.GREY100)],
+                                    ['T', ("Jump:   W", _SIZE[0]/4 - 120, 230, 'impact', 20, self.GREY100)],
+                                    ['T', ("Duck:   S", _SIZE[0]/4 - 120, 260, 'impact', 20, self.GREY100)],
+                                    ['T', ("Punch:   1", _SIZE[0]/4 - 120, 290, 'impact', 20, self.GREY100)],
+                                    ['T', ("Kick:   2", _SIZE[0]/4 - 120, 320, 'impact', 20, self.GREY100)],
+
+                                    ['T', ("Player 2", _SIZE[0]/4 * 3 - 85, 120, 'impact', 50, self.WHITE)],
+                                    ['T', ("Move left/right:   LEFT/RIGHT", _SIZE[0]/4 * 3 - 120, 200, 'impact', 20, self.GREY100)],
+                                    ['T', ("Jump:   UP", _SIZE[0]/4 * 3 - 120, 230, 'impact', 20, self.GREY100)],
+                                    ['T', ("Duck:   DOWN", _SIZE[0]/4 * 3 - 120, 260, 'impact', 20, self.GREY100)],
+                                    ['T', ("Punch:   ','", _SIZE[0]/4 * 3 - 120, 290, 'impact', 20, self.GREY100)],
+                                    ['T', ("Kick:   '.'", _SIZE[0]/4 * 3 - 120, 320, 'impact', 20, self.GREY100)],
                                 ]),
                         UI_Menu(pygame, 3, self.GREY200,
                                 [
-                                    (_SIZE[0] / 2 - 100, _SIZE[1] / 1.25, 220, 50, 1, self.GREY150, self.GREY125, self.GREY100, "BACK", "impact", 30, self.WHITE),
+                                    (10, _SIZE[1] - 60, 220, 50, 1, self.GREY150, self.GREY125, self.GREY100, "BACK", "impact", 30, self.WHITE),
                                 ],
                                 [
                                     ['R', (self.GREY100, 0, 0, _SIZE[0], 105)],

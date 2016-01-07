@@ -231,7 +231,6 @@ class UI_Menu (UserInterface) :
 
 
 
-
 class UI_SplashScreen(UserInterface) :
 
     def __init__(self, pygame, menuID, targetID, bg, decor) :
