@@ -745,7 +745,7 @@ class Sprite (GameObject) :
         self.handicap = True
         self.action = 9
         self.crouched = False
-        self.currentDir = di
+        self.currentDir = di*-1
 
         print self.damage
 
