@@ -2,55 +2,68 @@
 # Daniel Wolff
 # 11/11/2015
 
-import os, random
-from tools import *
+from os import path
+from random import randint
+from tools import Camera, Physics, Vector, Text
 
 class GameManager :
 
-    def __init__(self, pygame, SIZE) :
+    def __init__(self, pygame, SIZE, envFill, envOutline, p1Col, p2Col) :
         '''
         Initialize the game manager.
         :param pygame: PyGame instance.
         :param SIZE: Size of screen.
+        :param envFill: Environment fill colour.
+        :param envOutline: Environment outline colour.
+        :param p1Col: Player 1 colour.
+        :param p2Col: Player 2 colour.
         :return: None
         '''
 
-        self.P1UP = pygame.K_UP
-        self.P1DOWN = pygame.K_DOWN
-        self.P1LEFT = pygame.K_LEFT
-        self.P1RIGHT = pygame.K_RIGHT
-        self.P1PUNCH = pygame.K_COMMA
-        self.P1KICK = pygame.K_PERIOD
+        self.P1UP = pygame.K_w
+        self.P1DOWN = pygame.K_s
+        self.P1LEFT = pygame.K_a
+        self.P1RIGHT = pygame.K_d
+        self.P1PUNCH = pygame.K_1
+        self.P1KICK = pygame.K_2
 
-        self.P2UP = pygame.K_w
-        self.P2DOWN = pygame.K_s
-        self.P2LEFT = pygame.K_a
-        self.P2RIGHT = pygame.K_d
-        self.P2PUNCH = pygame.K_LSHIFT
-        self.P2KICK = pygame.K_CAPSLOCK
+        self.P2UP = pygame.K_UP
+        self.P2DOWN = pygame.K_DOWN
+        self.P2LEFT = pygame.K_LEFT
+        self.P2RIGHT = pygame.K_RIGHT
+        self.P2PUNCH = pygame.K_COMMA
+        self.P2KICK = pygame.K_PERIOD
 
         self.WIDTH = SIZE[0]
         self.HEIGHT = SIZE[1]
 
+        self.envFill = envFill
+        self.envOutline = envOutline
+
         self.sprites = self.getImages(pygame)
 
         self.physics = Physics()
-        self.camera = Camera(0, 0, 1, self.WIDTH, self.HEIGHT, 200, 1, 0.5)
+        self.camera = Camera(0, 0, 1, self.WIDTH, self.HEIGHT, 200, 0.8, 0.5)
 
-        self.environment = []
-        self.environment.append(EnvObject(0, 0, 50, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'L'))
-        self.environment.append(EnvObject(self.WIDTH - 50, 0, 50, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'R'))
-        self.environment.append(EnvObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, (200, 200, 200), (180, 180, 180), 'B'))
-        self.environment.append(EnvObject(100, self.HEIGHT/2.0, self.WIDTH/2.0, 15, (200, 200, 200), (180, 180, 180)))
+        self.environment = [
+                                EnvObject(-375, 500, 750, 50, self.envFill, self.envOutline),
+                                EnvObject(-300, 350, 200, 20, self.envFill, self.envOutline),
+                                EnvObject(100, 350, 200, 20, self.envFill, self.envOutline),
+                                EnvObject(-100, 250, 200, 20, self.envFill, self.envOutline),
+                                EnvObject(0, 1000, 0, 100, None, None, 'D')
+                            ]
 
-        self.player1 = Sprite(pygame, self.sprites, 100, 200, 50, 100, (0, 0, 0))
-        self.player2 = Sprite(pygame, self.sprites, 300, 200, 50, 100, (255, 0, 0))
+        self.player1 = Sprite(pygame, self.sprites, -200, 400, 50, 100,
+                              Text(pygame, "P1", 100, 200, 'impact', 15, p1Col))
+        self.player2 = Sprite(pygame, self.sprites, 200, 400, 50, 100,
+                              Text(pygame, "P2", 300, 200, 'impact', 15, p2Col))
 
         self.attacks = [None,None]
 
-    def update(self) :
+    def update(self, logic) :
         '''
         Update the game manager.
+        :param logic: Logic instance.
         :return: None
         '''
         self.camera.determinePosition(self.player1, self.player2)
@@ -59,6 +72,11 @@ class GameManager :
 
         self.player1.opposingAttacks(self.attacks[1])
         self.player2.opposingAttacks(self.attacks[0])
+
+        if self.getPlayerDamage(1) >= 300 :
+            logic.declareGameOver(2)
+        if self.getPlayerDamage(2) >= 300 :
+            logic.declareGameOver(1)
 
     def draw(self, screen, pygame) :
         '''
@@ -71,8 +89,12 @@ class GameManager :
         for i in self.environment :
             i.draw(screen, pygame, self.camera)
 
-        self.player1.draw(screen, pygame, self.camera)
-        self.player2.draw(screen, pygame, self.camera)
+        if self.player1.getYPos() < self.player2.getYPos() :
+            self.player1.draw(screen, pygame, self.camera)
+            self.player2.draw(screen, pygame, self.camera)
+        else :
+            self.player2.draw(screen, pygame, self.camera)
+            self.player1.draw(screen, pygame, self.camera)
 
     def doKeyDown(self, key) :
         '''
@@ -143,65 +165,86 @@ class GameManager :
         leftAnim = []
         rightAnim = []
 
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Stationary_Right.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Stationary_Right.png")).convert_alpha())
         for i in range(1, 7) :
-            rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Walk_Right" + str(i) + ".png")).convert_alpha())
+            rightAnim.append(pygame.image.load(path.join("data", "Right", "Walk_Right" + str(i) + ".png")).convert_alpha())
 
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right2.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Fall_Right3.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Fall_Right.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Fall_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Fall_Right3.png")).convert_alpha())
 
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Crouch_Right1.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Crouch_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Crouch_Right1.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Crouch_Right2.png")).convert_alpha())
 
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right1.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right2.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right3.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right4.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right5.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Roll_Right6.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Roll_Right1.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Roll_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Roll_Right3.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Roll_Right4.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Roll_Right5.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Roll_Right6.png")).convert_alpha())
 
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Punch_Right1.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Punch_Right2.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "CrouchPunch_Right1.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "CrouchPunch_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Punch_Right1.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Punch_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "CrouchPunch_Right1.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "CrouchPunch_Right2.png")).convert_alpha())
 
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Kick_Right1.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Kick_Right2.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Launch_Right.png")).convert_alpha())
-        rightAnim.append(pygame.image.load(os.path.join("data", "Right", "Lay_Right.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Kick_Right1.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Kick_Right2.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Launch_Right.png")).convert_alpha())
+        rightAnim.append(pygame.image.load(path.join("data", "Right", "Lay_Right.png")).convert_alpha())
 
 
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Stationary_Left.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Stationary_Left.png")).convert_alpha())
         for i in range(1, 7) :
-            leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Walk_Left" + str(i) + ".png")).convert_alpha())
+            leftAnim.append(pygame.image.load(path.join("data", "Left", "Walk_Left" + str(i) + ".png")).convert_alpha())
 
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left2.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Fall_Left3.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Fall_Left.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Fall_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Fall_Left3.png")).convert_alpha())
 
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Crouch_Left1.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Crouch_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Crouch_Left1.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Crouch_Left2.png")).convert_alpha())
 
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left1.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left2.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left3.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left4.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left5.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Roll_Left6.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Roll_Left1.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Roll_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Roll_Left3.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Roll_Left4.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Roll_Left5.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Roll_Left6.png")).convert_alpha())
 
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Punch_Left1.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Punch_Left2.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "CrouchPunch_Left1.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "CrouchPunch_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Punch_Left1.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Punch_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "CrouchPunch_Left1.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "CrouchPunch_Left2.png")).convert_alpha())
 
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Kick_Left1.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Kick_Left2.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Launch_Left.png")).convert_alpha())
-        leftAnim.append(pygame.image.load(os.path.join("data", "Left", "Lay_Left.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Kick_Left1.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Kick_Left2.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Launch_Left.png")).convert_alpha())
+        leftAnim.append(pygame.image.load(path.join("data", "Left", "Lay_Left.png")).convert_alpha())
 
 
         return [leftAnim, rightAnim]
+
+    def getPlayerDamage(self, p) :
+        '''
+        Get a player's damage.
+        :param p: Player number (1/2).
+        :return: (Int) player damage.
+        '''
+        if p == 1 :
+            return self.player1.getDamage()
+        elif p == 2 :
+            return self.player2.getDamage()
+
+    def startMatch(self) :
+        '''
+        Enable the players to start fighting.
+        :return: None
+        '''
+        self.player1.enable()
+        self.player2.enable()
+
+
 
 
 class GameObject :
@@ -241,19 +284,19 @@ class GameObject :
 
 class Sprite (GameObject) :
 
-    def __init__(self, pygame, anim, xPos, yPos, width, height, col) :
+    def __init__(self, pygame, anim, xPos, yPos, width, height, tag) :
         '''
         Initialize the sprite.
         :param anim: Animation images.
         :param xPos: X position.
         :param yPos: Y position.
-        :param col: Sprite colour.
+        :param tag: Sprite text tag (Text Object).
         :return: None
         '''
 
         GameObject.__init__(self, xPos, yPos, width, height)
 
-        self.colour = col
+        self.tag = tag
         self.animContent = anim
 
         self.hitBoxes = [   [(10,0,30,30), (15,30,20,70)],
@@ -265,7 +308,7 @@ class Sprite (GameObject) :
         self.grounded = True
         self.crouched = False
         self.allowDoubleJump = True
-        self.allowStateChange = True
+        self.allowStateChange = False
         self.handicap = False
         self.animStage = 0
         self.action = 0
@@ -314,7 +357,7 @@ class Sprite (GameObject) :
         if self.currentDir != 0 :
             self.lastDir = self.currentDir
 
-        if 2 <= self.action <= 3 :
+        if self.action in (2,3) :
             if self.grounded :
                 self.vel.setMagX(self.groundSpeed * self.currentDir)
             else :
@@ -330,37 +373,46 @@ class Sprite (GameObject) :
         self.lastXPos = self.xPos
         self.lastYPos = self.yPos
 
-        if self.action <= 3 :
+        if 1 <= self.action <= 3 :
             self.xPos += self.vel.getMagX()
-        elif self.action == 4:
+        elif self.action in (0,4):
             self.xPos += self.vel.getMagX()
             self.currentDir = 0
         elif self.action == 5 :
-            self.xPos += self.rollDistance * self.currentDir
+            self.xPos += self.rollDistance * self.lastDir
         elif self.action in (6,8) :
             self.xPos += self.dashDistance * self.lastDir
         elif self.action == 9 :
             self.xPos += self.vel.getMagX()
 
         self.yPos += self.vel.getMagY()
+        self.tag.setPos(self.xPos + 17, self.yPos - 20)
         ###
 
         ### COLLISIONS
         self.checkCollisions(objs, self.hitBoxes[int(self.crouched)][int(not self.crouched)])
 
-        if self.grounded and self.action == 3 :
-            if self.currentDir != 0 :
-                self.action = 1
-            else :
+        if self.grounded :
+            if self.action == 3 :
+                if self.currentDir != 0 :
+                    self.action = 1
+                else :
+                    self.action = 0
+            elif self.action == 9 :
                 self.action = 0
-        elif self.grounded and self.action == 9 :
-            self.action = 0
+
             self.handicap = False
-        elif not self.grounded and self.action <= 4 :
-            self.action = 3
-        ###
+        else :
+            if self.action <= 4 :
+                self.action = 3
 
         ### ANIMATIONS
+        if self.damage >= 300 :
+            if self.grounded :
+                self.action = 10
+                self.animStage = 25
+            self.allowStateChange = False
+
         if self.frameCount >= self.frameDelay :
             self.frameCount = 0
 
@@ -411,7 +463,10 @@ class Sprite (GameObject) :
                 else :
                     self.animStage = 11
                     self.allowStateChange = True
-                    self.action = 4
+                    if self.currentDir == 0 :
+                        self.action = 4
+                    else :
+                        self.action = 1
 
             elif self.action == 6 :
                 if self.animStage < self.attackStages[0][0] :
@@ -490,16 +545,6 @@ class Sprite (GameObject) :
         :return: None
         '''
 
-        ### TEMP
-
-        for i in self.hitBoxes[0] :
-            pos = camera.transToGameScreen(self.xPos + i[0], self.yPos + i[1])
-            zoom = camera.zoomToGameScreen(int(i[2]), int(i[3]))
-
-            #pygame.draw.rect(screen, (255,(i[1]*2),0), (pos[0], pos[1], zoom[0], zoom[1]))
-
-        ### TEMP
-
         if self.animStage == 25 :
             w = int(self.width*2)
         else :
@@ -514,6 +559,8 @@ class Sprite (GameObject) :
                                                         camera.zoomToGameScreen(w, int(self.height))),
                                                         camera.transToGameScreen(self.xPos, self.yPos))
 
+        self.tag.drawToCamera(screen, pygame, camera)
+
     def goDirection(self, direction) :
         '''
         Move in the direction specified.
@@ -527,7 +574,6 @@ class Sprite (GameObject) :
         if self.grounded :
             if self.action == 4:
                 self.action = 5
-
             else :
                 self.action = 1
         else :
@@ -555,13 +601,12 @@ class Sprite (GameObject) :
         :return: None
         '''
 
-        if self.action not in (4, 5) :
-            self.currentDir = 0
-
-        if not self.allowStateChange :
+        if not self.allowStateChange and self.action not in (4, 5, 6, 8) :
             return
 
-        if self.action not in (4, 5) :
+        self.currentDir = 0
+
+        if self.action not in (4, 5, 6, 8) :
             self.action = 0
 
     def punch(self) :
@@ -612,6 +657,10 @@ class Sprite (GameObject) :
         if not self.allowStateChange :
             return
 
+        if self.action == 9 :
+            self.action = 0
+            return
+
         if self.currentDir == 0 :
             self.action = 0
         else :
@@ -651,6 +700,9 @@ class Sprite (GameObject) :
                 self.grounded = True
                 self.allowDoubleJump = True
 
+            elif boundary == 'D' and self.yPos + self.height > i.getYPos() :
+                self.damage = 300
+
             elif boundary == 'NA' :
                 if (i.getXPos() < self.xPos + hitbox[0] + hitbox[2] and
                             self.xPos + hitbox[0] < i.getXPos() + i.getWidth() and
@@ -673,14 +725,13 @@ class Sprite (GameObject) :
             return
 
         if self.crouched and self.checkAttackCollisions(a, self.hitBoxes[1][0]) :
-            self.applyDamage(random.randint(15,20), a[3])
+            self.applyDamage(randint(15,20), a[3])
 
         elif (not self.crouched) and self.checkAttackCollisions(a, self.hitBoxes[0][0]) :
-            self.applyDamage(random.randint(15,20), a[3])
+            self.applyDamage(randint(15,20), a[3])
 
         elif (not self.crouched) and self.checkAttackCollisions(a, self.hitBoxes[0][1]) :
-            self.applyDamage(random.randint(7,12), a[3])
-
+            self.applyDamage(randint(7,12), a[3])
 
     def applyDamage(self, dam, di) :
         '''
@@ -693,14 +744,15 @@ class Sprite (GameObject) :
         self.damage += dam
         self.handicap = True
         self.action = 9
-        self.currentDir = di
+        self.crouched = False
+        self.currentDir = di*-1
 
         print self.damage
 
         if self.damage <= 50 :
-            self.vel = Vector(self.defaultLaunchSpeed*di, random.randint(-30,-20)*di)
+            self.vel = Vector(self.defaultLaunchSpeed*di, randint(-30,-20)*di)
         else :
-            self.vel = Vector(int(self.defaultLaunchSpeed*(self.damage/50.0))*di, random.randint(-45,-30)*di)
+            self.vel = Vector(int(self.defaultLaunchSpeed*(self.damage/50.0))*di, randint(-45,-30)*di)
 
     def checkAttackCollisions(self, a, hitbox) :
         '''
@@ -715,6 +767,20 @@ class Sprite (GameObject) :
                 self.yPos + hitbox[1] <= a[1] <= self.yPos + hitbox[1] + hitbox[3]) :
             return True
         return False
+
+    def disable(self) :
+        '''
+        Disable character controls.
+        :return: None
+        '''
+        self.allowStateChange = False
+
+    def enable(self) :
+        '''
+        Enable character controls.
+        :return: None
+        '''
+        self.allowStateChange = True
 
     def getXCenter(self) :
         return self.getXPos() + self.getWidth()/2.0
@@ -744,6 +810,9 @@ class EnvObject (GameObject) :
         self.boundary = boundary
 
     def draw(self, screen, pygame, camera) :
+
+        if self.fill is None :
+            return
 
         pos = camera.transToGameScreen(self.xPos, self.yPos)
         size = camera.zoomToGameScreen(self.width, self.height)

@@ -181,3 +181,143 @@ class Vector :
         :return: None
         '''
         self.magY = y
+
+
+
+class Button :
+
+    def __init__(self, pygame, x, y, w, h, t, fill, fill2, outline, text = None, textFont = None, textSize = None, textColour = None) :
+        '''
+        Initialize button.
+        :param pygame: PyGame instance.
+        :param x: x position.
+        :param y: y position.
+        :param w: Width.
+        :param h: Height.
+        :param t: Target menu ID.
+        :param fill: Fill colour.
+        :param fill2: Second fill colour.
+        :param outline: Outline colour.
+        :param text: Text object.
+        :param textFont: Text font.
+        :param textSize: Text size.
+        :param textColour: Text colour.
+        :return: None
+        '''
+
+        self.xPos = x
+        self.yPos = y
+        self.width = w
+        self.height = h
+        self.targetID = t
+        self.fill = fill
+        self.fill2 = fill2
+        self.outline = outline
+        if text is not None :
+            self.text = Text(pygame, text, x + 10, y + h/2.0 - (textSize+5)/2.0, textFont, textSize, textColour)
+
+        self.hover = False
+
+    def draw(self, screen, pygame) :
+        '''
+        Draw the button.
+        :param screen: Screen to draw the objects on.
+        :param pygame: PyGame instance.
+        :return: None
+        '''
+        if self.hover :
+            fill = self.fill2
+        else :
+            fill = self.fill
+        pygame.draw.rect(screen, fill, (self.xPos, self.yPos, self.width, self.height))
+        pygame.draw.rect(screen, self.outline, (self.xPos, self.yPos, self.width, self.height), 1)
+        self.text.draw(screen, pygame)
+
+    def isHovering(self, mx, my) :
+        '''
+        Check to see if the button has been clicked.
+        :param mx: Mouse x position.
+        :param my: Mouse y position.
+        :return: Boolean
+        '''
+        if self.xPos <= mx <= self.xPos + self.width and self.yPos <= my <= self.yPos + self.height :
+            return True
+        return False
+
+    def getTargetID(self) :
+        return self.targetID
+
+    def setHover(self, h) :
+        '''
+        Set the hover to True or False
+        :param h: True/False
+        :return: None
+        '''
+        self.hover = h
+
+class Text :
+
+    def __init__(self, pygame, text, x, y, font, size, col) :
+        '''
+        Initialize text.
+        :param text: Text string.
+        :param x: x position.
+        :param y: y position.
+        :param font: Text font name (string).
+        :param size: Text font size.
+        :param col: Text colour.
+        :return: None
+        '''
+        self.text = text
+        self.xPos = x
+        self.yPos = y
+        self.fontLoc = (pygame.font.match_font(font))
+        self.font = pygame.font.Font(self.fontLoc,size)
+        self.colour = col
+
+    def draw(self, screen, pygame) :
+        '''
+        Draw the text to a surface.
+        :param screen: Surface to draw to.
+        :param pygame: Pygame instance.
+        :return: None
+        '''
+        rend = self.font.render(self.text, True, self.colour)
+        screen.blit(rend,(self.xPos, self.yPos))
+
+    def drawToCamera(self, screen, pygame, camera) :
+        '''
+        Draw the text to a surface through the camera.
+        :param screen: Surface to draw to.
+        :param pygame: Pygame instance.
+        :param camera: Camera instance.
+        :return: None
+        '''
+        rend = self.font.render(self.text, True, self.colour)
+        screen.blit(rend,camera.transToGameScreen(self.xPos, self.yPos))
+
+    def setPos(self, x, y) :
+        '''
+        Set the position of the text.
+        :param x: x position.
+        :param y: y position.
+        :return: None
+        '''
+        self.xPos = x
+        self.yPos = y
+
+    def setText(self, text) :
+        '''
+        Set the text.
+        :param text: Text string.
+        :return: None
+        '''
+        self.text = text
+
+    def setColour(self, col) :
+        '''
+        Set the colour of the text.
+        :param col: Colour.
+        :return: None
+        '''
+        self.colour = col

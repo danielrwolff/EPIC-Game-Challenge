@@ -3,7 +3,9 @@
 # 10/21/2015
 
 import pygame
+from os import path
 from game import GameManager
+from gui import UI_Gameplay, UI_Menu, UI_SplashScreen
 
 class Logic :
 
@@ -15,15 +17,121 @@ class Logic :
         :return: None
         '''
 
+        self.BLACK = (0,0,0)
+        self.GREY75 = (75, 75, 75)
+        self.GREY100 = (100, 100, 100)
+        self.GREY125 = (125, 125, 125)
+        self.GREY150 = (150, 150, 150)
+        self.GREY175 = (175, 175, 175)
+        self.GREY200 = (200, 200, 200)
+        self.WHITE = (255,255,255)
+        self.BLUE = (0,0,255)
+        self.RED = (255,0,0)
+
         pygame.init()
 
         self.window = Screen(_SIZE, _CAPTION)
         self.events = EventHandler()
 
-        self.gameManager = GameManager(pygame, _SIZE)
+        self.gameManager = GameManager(pygame, _SIZE, self.GREY150, self.GREY100, self.RED, self.BLUE)
         self.audioManager = AudioManager()
 
+        self.menus = [  UI_SplashScreen(pygame, 0, 1, self.BLACK,
+                                [
+                                    ['T', ("Thanks for trying out my game!", 210, _SIZE[1]/2 - 50, 'impact', 30, self.WHITE)],
+                                    ['T', ("If you find any bugs, please let me know!", 150, _SIZE[1]/2 - 20, 'impact', 30, self.WHITE)],
+                                    ['T', ("(Click anywhere to begin)", 290, _SIZE[1]/2 + 50, 'impact', 20, self.WHITE)],
+                                ]),
+                        UI_Menu(pygame, 1, self.GREY200,
+                                [
+                                    ((_SIZE[0]/4) * 3 - 100, 50, 220, 50, 4, self.GREY150, self.GREY125, self.GREY100, "PLAY", "impact", 30, self.WHITE),
+                                    ((_SIZE[0]/4) * 3 - 100, 110, 220, 50, 2, self.GREY150, self.GREY125, self.GREY100, "CONTROLS", "impact", 30, self.WHITE),
+                                    ((_SIZE[0]/4) * 3 - 100, 170, 220, 50, 3, self.GREY150, self.GREY125, self.GREY100, "OPTIONS", "impact", 30, self.WHITE)
+                                ],
+                                [
+                                    ['I', pygame.image.load(path.join("data", "Splash1.png")).convert(), (0,0)],
+                                    ['I', pygame.image.load(path.join("data", "lolguy.png")).convert_alpha(), (_SIZE[0] - 300,_SIZE[1] - 350)],
+                                    ['T', ("SUPER", 20, -20, 'impact', 150, self.WHITE)],
+                                    ['T', ("SMASH", 20, 120, 'impact', 150, self.WHITE)],
+                                    ['T', ("STICKS", 20, 260, 'impact', 150, self.WHITE)],
+                                    ['T', ("BRAWL", 20, 400, 'impact', 150, self.WHITE)],
+                                ]),
+                        UI_Menu(pygame, 2, self.GREY200,
+                                [
+                                    (10, _SIZE[1] - 60, 220, 50, 1, self.GREY150, self.GREY125, self.GREY100, "BACK", "impact", 30, self.WHITE),
+                                ],
+                                [
+                                    ['R', (self.GREY100, 0, 0, _SIZE[0], 105)],
+                                    ['R', (self.GREY100, _SIZE[0]/2 - 2, 0, 4, _SIZE[1])],
+                                    ['R', (self.GREY150, 0, 0, _SIZE[0], 100)],
+                                    ['T', ("CONTROLS", 20, -10, 'impact', 100, self.WHITE)],
+
+                                    ['T', ("Player 1", _SIZE[0]/4 - 85, 120, 'impact', 50, self.WHITE)],
+                                    ['T', ("Move left/right:   A/D", _SIZE[0]/4 - 120, 200, 'impact', 20, self.GREY100)],
+                                    ['T', ("Jump:   W", _SIZE[0]/4 - 120, 230, 'impact', 20, self.GREY100)],
+                                    ['T', ("Duck:   S", _SIZE[0]/4 - 120, 260, 'impact', 20, self.GREY100)],
+                                    ['T', ("Punch:   1", _SIZE[0]/4 - 120, 290, 'impact', 20, self.GREY100)],
+                                    ['T', ("Kick:   2", _SIZE[0]/4 - 120, 320, 'impact', 20, self.GREY100)],
+
+                                    ['T', ("Player 2", _SIZE[0]/4 * 3 - 85, 120, 'impact', 50, self.WHITE)],
+                                    ['T', ("Move left/right:   LEFT/RIGHT", _SIZE[0]/4 * 3 - 120, 200, 'impact', 20, self.GREY100)],
+                                    ['T', ("Jump:   UP", _SIZE[0]/4 * 3 - 120, 230, 'impact', 20, self.GREY100)],
+                                    ['T', ("Duck:   DOWN", _SIZE[0]/4 * 3 - 120, 260, 'impact', 20, self.GREY100)],
+                                    ['T', ("Punch:   ','", _SIZE[0]/4 * 3 - 120, 290, 'impact', 20, self.GREY100)],
+                                    ['T', ("Kick:   '.'", _SIZE[0]/4 * 3 - 120, 320, 'impact', 20, self.GREY100)],
+                                ]),
+                        UI_Menu(pygame, 3, self.GREY200,
+                                [
+                                    (10, _SIZE[1] - 60, 220, 50, 1, self.GREY150, self.GREY125, self.GREY100, "BACK", "impact", 30, self.WHITE),
+                                ],
+                                [
+                                    ['R', (self.GREY100, 0, 0, _SIZE[0], 105)],
+                                    ['R', (self.GREY150, 0, 0, _SIZE[0], 100)],
+                                    ['T', ("OPTIONS", 20, -10, 'impact', 100, self.WHITE)],
+                                    ['T', ("This page is under construction.", 210, _SIZE[1]/2 - 50, 'impact', 30, self.GREY150)]
+                                ]),
+                        UI_Gameplay(pygame, 4, self.GREY175,
+                                    [
+                                        (5, 5, 50, 20, 1, self.GREY150, self.GREY125, self.GREY100, "EXIT", "impact", 15, self.WHITE)
+                                    ],
+                                    [
+                                        ['R', (self.GREY75, 0, _SIZE[1] - 55, _SIZE[0], 55)],
+                                        ['R', (self.GREY100, 0, _SIZE[1] - 50, _SIZE[0], 50)],
+
+                                        ['R', (self.GREY75, 75, _SIZE[1] - 75, 225, 75)],
+                                        ['R', (self.GREY150, 75, _SIZE[1] - 70, 220, 70)],
+                                        ['C', (self.GREY75, (75, _SIZE[1] - 75), 75)],
+                                        ['C', (self.GREY150, (75, _SIZE[1] - 75), 72)],
+                                        ['C', (self.RED, (75, _SIZE[1] - 75), 60)],
+                                        ['C', (self.GREY150, (75, _SIZE[1] - 75), 55)],
+
+                                        ['R', (self.GREY75, _SIZE[0] - 75, _SIZE[1] - 75, -225, 75)],
+                                        ['R', (self.GREY150, _SIZE[0] - 75, _SIZE[1] - 70, -220, 70)],
+                                        ['C', (self.GREY75, (_SIZE[0] - 75, _SIZE[1] - 75), 75)],
+                                        ['C', (self.GREY150, (_SIZE[0] - 75, _SIZE[1] - 75), 72)],
+                                        ['C', (self.BLUE, (_SIZE[0] - 75, _SIZE[1] - 75), 60)],
+                                        ['C', (self.GREY150, (_SIZE[0] - 75, _SIZE[1] - 75), 55)]
+                                    ],
+                                    _SIZE[0], _SIZE[1]),
+                        UI_SplashScreen(pygame, 5, 1, self.GREY150,
+                                        [
+                                    ['T', ("Player 1 wins!", 225, _SIZE[1]/2 - 100, 'impact', 70, self.WHITE)],
+                                    ['T', ("(Click anywhere to continue)", 285, _SIZE[1]/2 + 50, 'impact', 20, self.WHITE)],
+                                ]),
+                        UI_SplashScreen(pygame, 6, 1, self.GREY150,
+                                        [
+                                    ['T', ("Player 2 wins!", 225, _SIZE[1]/2 - 100, 'impact', 70, self.WHITE)],
+                                    ['T', ("(Click anywhere to continue)", 285, _SIZE[1]/2 + 50, 'impact', 20, self.WHITE)],
+                                ])
+                    ]
+
+        self.currentMenu = 0
+        self.gameplayUI = 4
         self.mouse = (0, 0)
+
+        self.matchStarted = False
+        self.gameOver = False, -1
+        self.endGameCount = 0
 
     def run(self) :
         '''
@@ -36,13 +144,25 @@ class Logic :
 
                 # Update objects
                 self.mouse = self.events.getMouse()
-                self.gameManager.update()
+
+                if self.gameOver[0] :
+                    self.endGameCount += 1
+                    if self.endGameCount > 100 :
+                        self.setGameOver(self.gameOver[1])
+                        self.gameOver = False, -1
+
+                self.menus[self.currentMenu].update(self)
+                if self.currentMenu == self.gameplayUI :
+                    self.gameManager.update(self)
 
                 # Refresh window
-                self.window.refresh()
+                self.window.refresh(self.menus[self.currentMenu].getBG())
 
                 # Draw objects
-                self.window.draw(self.gameManager)
+                if self.currentMenu == self.gameplayUI :
+                    self.window.draw(self.gameManager)
+
+                self.window.draw(self.menus[self.currentMenu])
 
                 # Flip window
                 self.window.flip()
@@ -58,7 +178,9 @@ class Logic :
         :param key: event.key
         :return: None
         '''
-        self.gameManager.doKeyDown(key)
+        self.menus[self.currentMenu].doKeyDown(self, key)
+        if self.currentMenu == self.gameplayUI :
+            self.gameManager.doKeyDown(key)
 
     def doKeyUp(self, key) :
         '''
@@ -66,7 +188,9 @@ class Logic :
         :param key: event.key
         :return: None
         '''
-        self.gameManager.doKeyUp(key)
+        self.menus[self.currentMenu].doKeyUp(self, key)
+        if self.currentMenu == self.gameplayUI :
+            self.gameManager.doKeyUp(key)
 
     def doMouseDown(self, mouse) :
         '''
@@ -74,14 +198,71 @@ class Logic :
         :param mouse: pygame.mouse.get_pressed()
         :return: None
         '''
+        self.menus[self.currentMenu].doMouseDown(self, mouse, self.mouse)
 
-    def doMouseUp(self) :
+    def doMouseUp(self, mouse) :
         '''
         Process a mouse button being released.
+        :param mouse: pygame.mouse.get_pressed()
         :return: None
         '''
+        self.menus[self.currentMenu].doMouseUp(self, mouse, self.mouse)
 
+    def getMouse(self) :
+        return self.mouse
 
+    def setMenu(self, menuID) :
+        '''
+        Set the current menu.
+        :param menuID: Menu ID.
+        :return: None
+        '''
+        if menuID == self.gameplayUI :
+            self.gameManager = GameManager(pygame, self.window.getSize(), self.GREY150, self.GREY100, self.RED, self.BLUE)
+            self.menus[self.gameplayUI].resetCountDown()
+            self.matchStarted = False
+            self.gameOver = False, -1
+            self.endGameCount = 0
+            self.audioManager.play('battle')
+        else :
+            self.audioManager.play('menu')
+        self.currentMenu = menuID
+
+    def getPlayerDamage(self, p) :
+        '''
+        Get a player's damage.
+        :param p: Player number (1/2)
+        :return: (Int) player damage.
+        '''
+        return self.gameManager.getPlayerDamage(p)
+
+    def declareGameOver(self, winner) :
+        '''
+        Declare the end of the game.
+        :param winner: The winner of the game.
+        :return: None
+        '''
+        self.gameOver = True, winner
+
+    def setGameOver(self, winner) :
+        '''
+        End the game.
+        :param winner: The winner of the game.
+        :return: None
+        '''
+        if winner == 1 :
+            self.currentMenu = 5
+        elif winner == 2:
+            self.currentMenu = 6
+
+    def startMatch(self) :
+        '''
+        Tell the game manager to start the match.
+        :return: None
+        '''
+        if not self.matchStarted :
+            self.matchStarted = True
+            self.gameManager.startMatch()
 
 class Screen :
 
@@ -97,12 +278,13 @@ class Screen :
         self.SIZE = _SIZE
         self.CAPTION = _CAPTION
 
-    def refresh(self) :
+    def refresh(self, col) :
         '''
         Clear the pygame screen and all surfaces.
+        :param col: Background colour.
         :return: None
         '''
-        self.screen.fill((230, 230, 230))
+        self.screen.fill(col)
 
     def flip(self) :
         '''
@@ -126,6 +308,15 @@ class Screen :
         :return: None
         '''
         pygame.quit()
+
+    def getWidth(self) :
+        return self.SIZE[0]
+
+    def getHeight(self) :
+        return self.SIZE[1]
+
+    def getSize(self) :
+        return self.SIZE
 
 
 
@@ -154,7 +345,7 @@ class EventHandler :
             elif event.type == pygame.MOUSEBUTTONDOWN :
                 env.doMouseDown(pygame.mouse.get_pressed())
             elif event.type == pygame.MOUSEBUTTONUP :
-                env.doMouseUp()
+                env.doMouseUp(pygame.mouse.get_pressed())
 
         return True
 
@@ -183,9 +374,21 @@ class AudioManager :
         self.musicVolume = [100, 100]
         self.sfxVolume = [100, 100]
         self.fadeRate = 1
+        self.currentSong = 'battle'
 
-        self.songs = [  pygame.mixer.Sound("data/hotpursuit.wav"),
-                        pygame.mixer.Sound("data/adventuretime.wav")    ]
+        self.songs = {  "menu" : pygame.mixer.Sound("data/menu.wav"),
+                        "battle" : pygame.mixer.Sound("data/battle.wav")    }
+
+    def play(self, song) :
+        '''
+        Play the specified song.
+        :param song: String -> song name.
+        :return: None
+        '''
+        if song != self.currentSong :
+            self.songs[self.currentSong].stop()
+            self.songs[song].play(-1)
+            self.currentSong = song
 
     def update(self) :
         '''
