@@ -130,12 +130,26 @@ class UI_Gameplay (UserInterface) :
         self.p1Damage = Text(pygame, "", 190, screenHeight - 50, 'impact', 30, self.WHITE)
         self.p2Damage = Text(pygame, "", screenWidth - 230, screenHeight - 50, 'impact', 30, self.WHITE)
 
+        self.countDownCount = 0
+        self.countDownTime = 100
+        self.countDownText = [  Text(pygame, "GO", screenWidth/2 - 85, screenHeight/2 - 100, 'impact', 150, self.WHITE),
+                                Text(pygame, "1", screenWidth/2 - 30, screenHeight/2 - 100, 'impact', 150, self.WHITE),
+                                Text(pygame, "2", screenWidth/2 - 40, screenHeight/2 - 100, 'impact', 150, self.WHITE),
+                                Text(pygame, "3", screenWidth/2 - 40, screenHeight/2 - 100, 'impact', 150, self.WHITE)
+                                ]
+
     def update(self, logic):
         '''
         Update the user interface.
         :param logic : Logic instance.
         :return: None
         '''
+
+        if self.countDownCount > self.countDownTime :
+            logic.startMatch()
+        else :
+            self.countDownCount += 1
+
         p1 = logic.getPlayerDamage(1)
         p2 = logic.getPlayerDamage(2)
 
@@ -171,6 +185,24 @@ class UI_Gameplay (UserInterface) :
 
         self.p1Damage.draw(screen, pygame)
         self.p2Damage.draw(screen, pygame)
+
+        if self.countDownCount < self.countDownTime :
+            if self.countDownCount >= 75 :
+                self.countDownText[0].draw(screen, pygame)
+            elif self.countDownCount >= 50 :
+                self.countDownText[1].draw(screen, pygame)
+            elif self.countDownCount >= 25 :
+                self.countDownText[2].draw(screen, pygame)
+            else :
+                self.countDownText[3].draw(screen, pygame)
+
+    def resetCountDown(self) :
+        '''
+        Reset the game count down.
+        :return: None
+        '''
+        self.countDownCount = 0
+
 
 
 

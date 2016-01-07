@@ -43,17 +43,19 @@ class GameManager :
         self.sprites = self.getImages(pygame)
 
         self.physics = Physics()
-        self.camera = Camera(0, 0, 1, self.WIDTH, self.HEIGHT, 200, 1, 0.5)
+        self.camera = Camera(0, 0, 1, self.WIDTH, self.HEIGHT, 200, 0.8, 0.5)
 
-        self.environment = []
-        self.environment.append(EnvObject(0, 0, 50, self.HEIGHT, self.envFill, self.envOutline, 'L'))
-        self.environment.append(EnvObject(self.WIDTH - 50, 0, 50, self.HEIGHT, self.envFill, self.envOutline, 'R'))
-        self.environment.append(EnvObject(0, self.HEIGHT - 50, self.WIDTH, self.HEIGHT, self.envFill, self.envOutline, 'B'))
-        self.environment.append(EnvObject(100, self.HEIGHT/2.0, self.WIDTH/2.0, 15, self.envFill, self.envOutline))
+        self.environment = [
+                                EnvObject(-375, 500, 750, 50, self.envFill, self.envOutline),
+                                EnvObject(-300, 350, 200, 20, self.envFill, self.envOutline),
+                                EnvObject(100, 350, 200, 20, self.envFill, self.envOutline),
+                                EnvObject(-100, 250, 200, 20, self.envFill, self.envOutline),
+                                EnvObject(0, 1000, 0, 100, None, None, 'D')
+                            ]
 
-        self.player1 = Sprite(pygame, self.sprites, 100, 200, 50, 100,
+        self.player1 = Sprite(pygame, self.sprites, -200, 400, 50, 100,
                               Text(pygame, "P1", 100, 200, 'impact', 15, p1Col))
-        self.player2 = Sprite(pygame, self.sprites, 300, 200, 50, 100,
+        self.player2 = Sprite(pygame, self.sprites, 200, 400, 50, 100,
                               Text(pygame, "P2", 300, 200, 'impact', 15, p2Col))
 
         self.attacks = [None,None]
@@ -93,7 +95,6 @@ class GameManager :
         else :
             self.player2.draw(screen, pygame, self.camera)
             self.player1.draw(screen, pygame, self.camera)
-
 
     def doKeyDown(self, key) :
         '''
@@ -235,6 +236,14 @@ class GameManager :
         elif p == 2 :
             return self.player2.getDamage()
 
+    def startMatch(self) :
+        '''
+        Enable the players to start fighting.
+        :return: None
+        '''
+        self.player1.enable()
+        self.player2.enable()
+
 
 
 
@@ -299,7 +308,7 @@ class Sprite (GameObject) :
         self.grounded = True
         self.crouched = False
         self.allowDoubleJump = True
-        self.allowStateChange = True
+        self.allowStateChange = False
         self.handicap = False
         self.animStage = 0
         self.action = 0
@@ -328,7 +337,7 @@ class Sprite (GameObject) :
         self.jumpSpeed = -15
         self.defaultLaunchSpeed = 10
 
-        self.damage = 299
+        self.damage = 0
 
         self.lastXPos = self.xPos
         self.lastYPos = self.yPos
@@ -348,7 +357,7 @@ class Sprite (GameObject) :
         if self.currentDir != 0 :
             self.lastDir = self.currentDir
 
-        if 2 <= self.action <= 3 :
+        if self.action in (2,3) :
             if self.grounded :
                 self.vel.setMagX(self.groundSpeed * self.currentDir)
             else :
@@ -370,7 +379,7 @@ class Sprite (GameObject) :
             self.xPos += self.vel.getMagX()
             self.currentDir = 0
         elif self.action == 5 :
-            self.xPos += self.rollDistance * self.currentDir
+            self.xPos += self.rollDistance * self.lastDir
         elif self.action in (6,8) :
             self.xPos += self.dashDistance * self.lastDir
         elif self.action == 9 :
@@ -398,6 +407,12 @@ class Sprite (GameObject) :
                 self.action = 3
 
         ### ANIMATIONS
+        if self.damage >= 300 :
+            if self.grounded :
+                self.action = 10
+                self.animStage = 25
+            self.allowStateChange = False
+
         if self.frameCount >= self.frameDelay :
             self.frameCount = 0
 
@@ -448,7 +463,10 @@ class Sprite (GameObject) :
                 else :
                     self.animStage = 11
                     self.allowStateChange = True
-                    self.action = 4
+                    if self.currentDir == 0 :
+                        self.action = 4
+                    else :
+                        self.action = 1
 
             elif self.action == 6 :
                 if self.animStage < self.attackStages[0][0] :
@@ -527,16 +545,6 @@ class Sprite (GameObject) :
         :return: None
         '''
 
-        ### TEMP
-
-        #for i in self.hitBoxes[0] :
-        #    pos = camera.transToGameScreen(self.xPos + i[0], self.yPos + i[1])
-        #    zoom = camera.zoomToGameScreen(int(i[2]), int(i[3]))
-
-            #pygame.draw.rect(screen, (255,(i[1]*2),0), (pos[0], pos[1], zoom[0], zoom[1]))
-
-        ### TEMP
-
         if self.animStage == 25 :
             w = int(self.width*2)
         else :
@@ -566,7 +574,6 @@ class Sprite (GameObject) :
         if self.grounded :
             if self.action == 4:
                 self.action = 5
-
             else :
                 self.action = 1
         else :
@@ -594,13 +601,12 @@ class Sprite (GameObject) :
         :return: None
         '''
 
-        if self.action not in (4, 5) :
-            self.currentDir = 0
-
-        if not self.allowStateChange :
+        if not self.allowStateChange and self.action not in (4,5) :
             return
 
-        if self.action not in (4, 5) :
+        self.currentDir = 0
+
+        if self.action not in (4, 5, 6, 8) :
             self.action = 0
 
     def punch(self) :
@@ -762,6 +768,20 @@ class Sprite (GameObject) :
             return True
         return False
 
+    def disable(self) :
+        '''
+        Disable character controls.
+        :return: None
+        '''
+        self.allowStateChange = False
+
+    def enable(self) :
+        '''
+        Enable character controls.
+        :return: None
+        '''
+        self.allowStateChange = True
+
     def getXCenter(self) :
         return self.getXPos() + self.getWidth()/2.0
 
@@ -790,6 +810,9 @@ class EnvObject (GameObject) :
         self.boundary = boundary
 
     def draw(self, screen, pygame, camera) :
+
+        if self.fill is None :
+            return
 
         pos = camera.transToGameScreen(self.xPos, self.yPos)
         size = camera.zoomToGameScreen(self.width, self.height)
