@@ -21,7 +21,7 @@ class UserInterface :
         self.bg = bg
         self.buttons = []
         for i in buttons :
-            self.buttons.append(Button(pygame, i[0],i[1],i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
+            self.buttons.append(Button(pygame, i[0],i[1],i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[10],i[11]))
 
         self.decor = []
         for i in decor :
@@ -41,6 +41,12 @@ class UserInterface :
         :param logic : Logic instance.
         :return: None
         '''
+        mx, my = logic.getMouse()
+        for i in self.buttons :
+            if i.isHovering(mx, my) :
+                i.setHover(True)
+            else :
+                i.setHover(False)
 
     def draw(self, screen, pygame) :
         '''
@@ -97,7 +103,7 @@ class UserInterface :
         :return: None
         '''
         for button in self.buttons :
-            if button.isClicked(pos[0], pos[1]) :
+            if button.isHovering(pos[0], pos[1]) :
                 env.setMenu(button.getTargetID())
                 return
 
@@ -144,6 +150,8 @@ class UI_Gameplay (UserInterface) :
         :param logic : Logic instance.
         :return: None
         '''
+
+        UserInterface.update(self, logic)
 
         if self.countDownCount > self.countDownTime :
             logic.startMatch()

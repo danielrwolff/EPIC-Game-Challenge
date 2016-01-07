@@ -20,6 +20,7 @@ class Logic :
         self.BLACK = (0,0,0)
         self.GREY75 = (75, 75, 75)
         self.GREY100 = (100, 100, 100)
+        self.GREY125 = (125, 125, 125)
         self.GREY150 = (150, 150, 150)
         self.GREY175 = (175, 175, 175)
         self.GREY200 = (200, 200, 200)
@@ -43,9 +44,9 @@ class Logic :
                                 ]),
                         UI_Menu(pygame, 1, self.GREY200,
                                 [
-                                    ((_SIZE[0]/4) * 3 - 100, 50, 220, 50, 4, self.GREY150, self.GREY100, "PLAY", "impact", 30, self.WHITE),
-                                    ((_SIZE[0]/4) * 3 - 100, 110, 220, 50, 2, self.GREY150, self.GREY100, "CONTROLS", "impact", 30, self.WHITE),
-                                    ((_SIZE[0]/4) * 3 - 100, 170, 220, 50, 3, self.GREY150, self.GREY100, "OPTIONS", "impact", 30, self.WHITE)
+                                    ((_SIZE[0]/4) * 3 - 100, 50, 220, 50, 4, self.GREY150, self.GREY125, self.GREY100, "PLAY", "impact", 30, self.WHITE),
+                                    ((_SIZE[0]/4) * 3 - 100, 110, 220, 50, 2, self.GREY150, self.GREY125, self.GREY100, "CONTROLS", "impact", 30, self.WHITE),
+                                    ((_SIZE[0]/4) * 3 - 100, 170, 220, 50, 3, self.GREY150, self.GREY125, self.GREY100, "OPTIONS", "impact", 30, self.WHITE)
                                 ],
                                 [
                                     ['I', pygame.image.load(path.join("data", "Splash1.png")).convert(), (0,0)],
@@ -57,7 +58,7 @@ class Logic :
                                 ]),
                         UI_Menu(pygame, 2, self.GREY200,
                                 [
-                                    (_SIZE[0] / 2 - 100, _SIZE[1] / 1.25, 220, 50, 1, self.GREY150, self.GREY100, "BACK", "impact", 30, self.WHITE),
+                                    (_SIZE[0] / 2 - 100, _SIZE[1] / 1.25, 220, 50, 1, self.GREY150, self.GREY125, self.GREY100, "BACK", "impact", 30, self.WHITE),
                                 ],
                                 [
                                     ['R', (self.GREY100, 0, 0, _SIZE[0], 105)],
@@ -66,7 +67,7 @@ class Logic :
                                 ]),
                         UI_Menu(pygame, 3, self.GREY200,
                                 [
-                                    (_SIZE[0] / 2 - 100, _SIZE[1] / 1.25, 220, 50, 1, self.GREY150, self.GREY100, "BACK", "impact", 30, self.WHITE),
+                                    (_SIZE[0] / 2 - 100, _SIZE[1] / 1.25, 220, 50, 1, self.GREY150, self.GREY125, self.GREY100, "BACK", "impact", 30, self.WHITE),
                                 ],
                                 [
                                     ['R', (self.GREY100, 0, 0, _SIZE[0], 105)],
@@ -76,7 +77,7 @@ class Logic :
                                 ]),
                         UI_Gameplay(pygame, 4, self.GREY175,
                                     [
-                                        (5, 5, 50, 20, 1, self.GREY150, self.GREY100, "EXIT", "impact", 15, self.WHITE)
+                                        (5, 5, 50, 20, 1, self.GREY150, self.GREY125, self.GREY100, "EXIT", "impact", 15, self.WHITE)
                                     ],
                                     [
                                         ['R', (self.GREY75, 0, _SIZE[1] - 55, _SIZE[0], 55)],
@@ -135,9 +136,8 @@ class Logic :
                         self.setGameOver(self.gameOver[1])
                         self.gameOver = False, -1
 
-
+                self.menus[self.currentMenu].update(self)
                 if self.currentMenu == self.gameplayUI :
-                    self.menus[self.currentMenu].update(self)
                     self.gameManager.update(self)
 
                 # Refresh window
@@ -192,6 +192,9 @@ class Logic :
         :return: None
         '''
         self.menus[self.currentMenu].doMouseUp(self, mouse, self.mouse)
+
+    def getMouse(self) :
+        return self.mouse
 
     def setMenu(self, menuID) :
         '''

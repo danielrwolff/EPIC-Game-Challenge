@@ -186,7 +186,7 @@ class Vector :
 
 class Button :
 
-    def __init__(self, pygame, x, y, w, h, t, fill, outline, text = None, textFont = None, textSize = None, textColour = None) :
+    def __init__(self, pygame, x, y, w, h, t, fill, fill2, outline, text = None, textFont = None, textSize = None, textColour = None) :
         '''
         Initialize button.
         :param pygame: PyGame instance.
@@ -196,6 +196,7 @@ class Button :
         :param h: Height.
         :param t: Target menu ID.
         :param fill: Fill colour.
+        :param fill2: Second fill colour.
         :param outline: Outline colour.
         :param text: Text object.
         :param textFont: Text font.
@@ -210,9 +211,12 @@ class Button :
         self.height = h
         self.targetID = t
         self.fill = fill
+        self.fill2 = fill2
         self.outline = outline
         if text is not None :
             self.text = Text(pygame, text, x + 10, y + h/2.0 - (textSize+5)/2.0, textFont, textSize, textColour)
+
+        self.hover = False
 
     def draw(self, screen, pygame) :
         '''
@@ -221,11 +225,15 @@ class Button :
         :param pygame: PyGame instance.
         :return: None
         '''
-        pygame.draw.rect(screen, self.fill, (self.xPos, self.yPos, self.width, self.height))
+        if self.hover :
+            fill = self.fill2
+        else :
+            fill = self.fill
+        pygame.draw.rect(screen, fill, (self.xPos, self.yPos, self.width, self.height))
         pygame.draw.rect(screen, self.outline, (self.xPos, self.yPos, self.width, self.height), 1)
         self.text.draw(screen, pygame)
 
-    def isClicked(self, mx, my) :
+    def isHovering(self, mx, my) :
         '''
         Check to see if the button has been clicked.
         :param mx: Mouse x position.
@@ -238,6 +246,14 @@ class Button :
 
     def getTargetID(self) :
         return self.targetID
+
+    def setHover(self, h) :
+        '''
+        Set the hover to True or False
+        :param h: True/False
+        :return: None
+        '''
+        self.hover = h
 
 class Text :
 
