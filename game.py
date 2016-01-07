@@ -20,19 +20,19 @@ class GameManager :
         :return: None
         '''
 
-        self.P1UP = pygame.K_UP
-        self.P1DOWN = pygame.K_DOWN
-        self.P1LEFT = pygame.K_LEFT
-        self.P1RIGHT = pygame.K_RIGHT
-        self.P1PUNCH = pygame.K_COMMA
-        self.P1KICK = pygame.K_PERIOD
+        self.P1UP = pygame.K_w
+        self.P1DOWN = pygame.K_s
+        self.P1LEFT = pygame.K_a
+        self.P1RIGHT = pygame.K_d
+        self.P1PUNCH = pygame.K_1
+        self.P1KICK = pygame.K_2
 
-        self.P2UP = pygame.K_w
-        self.P2DOWN = pygame.K_s
-        self.P2LEFT = pygame.K_a
-        self.P2RIGHT = pygame.K_d
-        self.P2PUNCH = pygame.K_1
-        self.P2KICK = pygame.K_2
+        self.P2UP = pygame.K_UP
+        self.P2DOWN = pygame.K_DOWN
+        self.P2LEFT = pygame.K_LEFT
+        self.P2RIGHT = pygame.K_RIGHT
+        self.P2PUNCH = pygame.K_COMMA
+        self.P2KICK = pygame.K_PERIOD
 
         self.WIDTH = SIZE[0]
         self.HEIGHT = SIZE[1]
