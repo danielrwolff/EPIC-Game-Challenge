@@ -49,6 +49,7 @@ class Logic :
                                 ],
                                 [
                                     ['I', pygame.image.load(path.join("data", "Splash1.png")).convert(), (0,0)],
+                                    ['I', pygame.image.load(path.join("data", "lolguy.png")).convert_alpha(), (_SIZE[0] - 300,_SIZE[1] - 350)],
                                     ['T', ("SUPER", 20, -20, 'impact', 150, self.WHITE)],
                                     ['T', ("SMASH", 20, 120, 'impact', 150, self.WHITE)],
                                     ['T', ("STICKS", 20, 260, 'impact', 150, self.WHITE)],

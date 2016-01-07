@@ -601,7 +601,7 @@ class Sprite (GameObject) :
         :return: None
         '''
 
-        if not self.allowStateChange and self.action not in (4,5) :
+        if not self.allowStateChange and self.action not in (4, 5, 6, 8) :
             return
 
         self.currentDir = 0
