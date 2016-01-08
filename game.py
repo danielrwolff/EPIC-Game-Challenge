@@ -584,7 +584,7 @@ class Sprite (GameObject) :
         Make the player jump.
         :return: None
         '''
-        if not self.allowStateChange :
+        if not self.allowStateChange or self.action == 9 :
             return
 
         self.action = 3
