@@ -8,6 +8,8 @@ The aim of the game is to punch and kick your opponent (another player) until he
 
 Enjoy!
 
+-- Daniel Wolff
+
 TO DO:
   - Options
   - Blood effects?
