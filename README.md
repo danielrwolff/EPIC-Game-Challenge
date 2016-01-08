@@ -23,7 +23,6 @@ DONE:
   - Character animation
   - Collisions
   - Menu structure
-  - Finalize audio structure
   - Environment design
   - Character interactions
   
