@@ -55,6 +55,7 @@ class Logic :
                                     ['T', ("SMASH", 20, 120, 'impact', 150, self.WHITE)],
                                     ['T', ("STICKS", 20, 260, 'impact', 150, self.WHITE)],
                                     ['T', ("BRAWL", 20, 400, 'impact', 150, self.WHITE)],
+                                    ['T', ("Made by Daniel Wolff", 5, _SIZE[1] - 25, 'impact', 20, self.GREY75)],
                                 ]),
                         UI_Menu(pygame, 2, self.GREY200,
                                 [
